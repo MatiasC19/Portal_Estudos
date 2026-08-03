@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trilha DS — Plataforma de estudos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F4F7FA; --card:#FFFFFF; --ink:#10233B; --ink-soft:#4A5B72; --line:#DCE4EE;
+  --f1:#1F77B4; --f2:#2CA02C; --f3:#FF7F0E; --f4:#D62728; --f5:#9467BD; --f6:#8C564B;
+  --ok:#2CA02C; --err:#C62828; --chart-grid:#E3EAF3; --side:#0F1B2D; --side-ink:#C7D4E4;
+  --display:'Space Grotesk',sans-serif; --body:'IBM Plex Sans',sans-serif; --mono:'IBM Plex Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.55}
+a{color:var(--f1)}
+button{font-family:inherit}
+
+#app{display:flex;min-height:100vh}
+aside{width:290px;background:var(--side);color:var(--side-ink);position:fixed;top:0;bottom:0;left:0;overflow-y:auto;padding:18px 14px 30px;z-index:40;transition:transform .25s}
+.main{flex:1;margin-left:290px;min-width:0}
+.topbar{position:sticky;top:0;z-index:30;background:rgba(244,247,250,.92);backdrop-filter:blur(6px);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;padding:10px 22px}
+#burger{display:none;background:none;border:1px solid var(--line);border-radius:8px;width:36px;height:32px;font-size:16px;cursor:pointer;color:var(--ink)}
+.crumb{font-family:var(--mono);font-size:12px;color:var(--ink-soft);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#saveState{font-family:var(--mono);font-size:11px;color:var(--ink-soft)}
+#saveState.ok::before{content:"●";color:var(--ok);margin-right:5px}
+#saveState.warn::before{content:"●";color:var(--f3);margin-right:5px}
+#content{padding:24px 26px 60px;max-width:960px}
+@media(max-width:900px){
+  aside{transform:translateX(-100%)} body.side-open aside{transform:none}
+  .main{margin-left:0} #burger{display:block}
+  body.side-open::after{content:"";position:fixed;inset:0;background:rgba(16,35,59,.45);z-index:35}
+}
+
+.brand{font-family:var(--display);font-weight:700;font-size:17px;color:#fff;padding:4px 8px 2px}
+.brand span{color:#6FB3E0}
+.brand-sub{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#7E93AC;padding:0 8px 14px}
+.nav-dash{display:flex;align-items:center;gap:8px;width:100%;text-align:left;background:#16304F;border:1px solid #24466E;color:#fff;border-radius:9px;padding:9px 12px;font-size:13.5px;cursor:pointer;margin-bottom:14px}
+.nav-dash:hover{background:#1B3A5F}
+.nav-fase{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#7E93AC;margin:14px 8px 6px;display:flex;align-items:center;gap:7px}
+.nav-fase i{width:8px;height:8px;border-radius:2px;background:var(--c);display:inline-block}
+.nav-mod{display:flex;align-items:center;gap:9px;width:100%;text-align:left;background:none;border:none;color:var(--side-ink);border-radius:8px;padding:7px 8px;font-size:13px;cursor:pointer;line-height:1.3}
+.nav-mod:hover{background:#16304F}
+.nav-mod.active{background:#1F4260;color:#fff}
+.nav-mod .nn{font-family:var(--mono);font-size:10.5px;color:#7E93AC;min-width:18px}
+.nav-mod .nt{flex:1}
+.nav-mod .np{font-family:var(--mono);font-size:10.5px;color:#8FB8DB;min-width:34px;text-align:right}
+.nav-mod.done .np{color:#7FD48A}
+
+.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin-bottom:16px}
+.panel h2{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);font-weight:500;margin-bottom:10px}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(22px,3.6vw,32px);line-height:1.15;margin-bottom:6px}
+.sub{color:var(--ink-soft);max-width:680px;margin-bottom:16px}
+.aviso{background:#FFF8EC;border:1px solid #F2DFAE;border-radius:12px;padding:11px 15px;font-size:13px;color:#6B5310;margin-bottom:16px}
+.aviso code{font-family:var(--mono);font-size:12px;background:#FBEECB;padding:1px 5px;border-radius:4px}
+
+.grid2{display:grid;grid-template-columns:1.35fr 1fr;gap:16px}
+@media(max-width:820px){.grid2{grid-template-columns:1fr}}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.stat{border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:#FBFDFF}
+.stat b{font-family:var(--display);font-size:23px;display:block;line-height:1.1}
+.stat span{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft)}
+.ritmo{margin-top:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ritmo label{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-soft)}
+.ritmo select{font-family:var(--mono);font-size:12px;padding:5px 8px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink)}
+.eta{font-size:13px;color:var(--ink-soft);margin-top:8px}
+.eta b,.milestones b{color:var(--ink)}
+.milestones{margin-top:10px;font-size:12.5px;color:var(--ink-soft);border-top:1px dashed var(--line);padding-top:10px}
+.curve-note{font-family:var(--mono);font-size:11px;color:var(--ink-soft);margin-top:6px}
+
+.mod-hero{border-left:5px solid var(--c);padding-left:14px;margin-bottom:18px}
+.mod-hero .tag{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#fff;background:var(--c);padding:3px 9px;border-radius:6px}
+.mod-hero .meta{font-family:var(--mono);font-size:12px;color:var(--ink-soft);margin-top:6px}
+.secT{font-family:var(--display);font-size:17px;margin:22px 0 10px}
+.item{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid #EEF3F9}
+.item:last-child{border-bottom:none}
+.tipo{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#fff;background:var(--ink-soft);border-radius:5px;padding:2px 7px;margin-top:2px;white-space:nowrap}
+.tipo.curso{background:var(--f1)} .tipo.video{background:#B8860B} .tipo.cert{background:var(--f5)}
+.tipo.pratica{background:var(--f3)} .tipo.entrega{background:var(--f4)} .tipo.livro{background:#0E7C7B}
+.item .txt{flex:1}
+.item .nome{font-weight:500}
+.item .desc{font-size:12.5px;color:var(--ink-soft)}
+.acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.acts button,.acts a{font-family:var(--mono);font-size:11.5px;border:1px solid var(--f1);color:var(--f1);background:#fff;border-radius:7px;padding:4px 10px;cursor:pointer;text-decoration:none}
+.acts button:hover,.acts a:hover{background:var(--f1);color:#fff}
+.chk{display:flex;align-items:center;gap:7px;cursor:pointer;font-family:var(--mono);font-size:11px;color:var(--ink-soft);white-space:nowrap;margin-top:2px}
+.chk input{width:17px;height:17px;accent-color:var(--ok);cursor:pointer}
+.item.feito .txt{opacity:.55}
+.item.feito .nome{text-decoration:line-through}
+.player{margin:8px 0 4px}
+.player .frame{position:relative;width:100%;max-width:680px;aspect-ratio:16/9;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#0F1B2D}
+.player iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.player .ph{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:#DCE4EE;cursor:pointer;background:linear-gradient(135deg,#12263F,#0F1B2D)}
+.playbtn{width:60px;height:42px;border-radius:12px;background:var(--f4);display:flex;align-items:center;justify-content:center;transition:transform .15s}
+.player .ph:hover .playbtn{transform:scale(1.08)}
+.playbtn::after{content:"";border-style:solid;border-width:9px 0 9px 15px;border-color:transparent transparent transparent #fff;margin-left:3px}
+.player .ph span{font-family:var(--mono);font-size:12px}
+.player .fb{font-size:12px;color:var(--ink-soft);margin-top:4px}
+.navmod-foot{display:flex;justify-content:space-between;margin-top:26px;gap:10px}
+.navmod-foot button{border:1px solid var(--line);background:#fff;border-radius:9px;padding:8px 14px;font-size:13px;cursor:pointer;color:var(--ink)}
+.navmod-foot button:hover{border-color:var(--f1);color:var(--f1)}
+.navmod-foot button:disabled{opacity:.4;cursor:default}
+
+.ex{border:1px solid var(--line);border-radius:12px;margin-bottom:14px;overflow:hidden;background:var(--card)}
+.ex-head{display:flex;align-items:center;gap:12px;padding:12px 16px;cursor:pointer;user-select:none}
+.ex-head:hover{background:#FBFDFF}
+.ex-head .badge{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;background:#123B5C;color:#fff;border-radius:5px;padding:2px 7px}
+.ex-head .et{font-weight:600;flex:1}
+.ex-head .est{font-family:var(--mono);font-size:11px;color:var(--ink-soft)}
+.ex-head .est.ok{color:var(--ok);font-weight:600}
+.ex-body{display:none;border-top:1px dashed var(--line);padding:14px 16px}
+.ex.open .ex-body{display:block}
+.enun{font-size:14px;margin-bottom:10px}
+.enun code,.esperado code{font-family:var(--mono);font-size:12.5px;background:#EEF3F9;padding:1px 5px;border-radius:4px}
+.esperado{background:#F2F7FC;border:1px solid #D9E7F4;border-radius:9px;padding:9px 12px;font-size:12.5px;margin-bottom:10px}
+.esperado b{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);display:block;margin-bottom:4px}
+.esperado pre{font-family:var(--mono);font-size:12px;white-space:pre-wrap}
+.editor{width:100%;min-height:170px;font-family:var(--mono);font-size:13px;line-height:1.5;background:#0F1B2D;color:#E7EEF6;border:1px solid #24466E;border-radius:10px;padding:12px;resize:vertical;tab-size:4}
+.editor:focus{outline:2px solid var(--f1)}
+.ex-actions{display:flex;gap:9px;align-items:center;margin-top:9px;flex-wrap:wrap}
+.btn-run{background:var(--ok);color:#fff;border:none;border-radius:8px;padding:7px 16px;font-family:var(--mono);font-size:12.5px;cursor:pointer;display:inline-flex;gap:7px;align-items:center}
+.btn-run:hover{filter:brightness(1.07)}
+.btn-run:disabled{background:#9BB2C8;cursor:wait}
+.btn-ghost{background:#fff;border:1px solid var(--line);border-radius:8px;padding:6px 12px;font-family:var(--mono);font-size:12px;cursor:pointer;color:var(--ink-soft)}
+.btn-ghost:hover{border-color:var(--f1);color:var(--f1)}
+.saida{margin-top:10px;border-radius:10px;border:1px solid var(--line);overflow:hidden;display:none}
+.saida.show{display:block}
+.saida .s-h{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;padding:6px 12px;background:#EEF3F9;color:var(--ink-soft)}
+.saida pre{font-family:var(--mono);font-size:12.5px;padding:10px 12px;white-space:pre-wrap;max-height:220px;overflow:auto}
+.veredito{padding:10px 12px;font-size:13.5px;border-top:1px solid var(--line)}
+.veredito.ok{background:#EAF6EA;color:#1E5E1E}
+.veredito.err{background:#FDECEC;color:#8E1F1F}
+.veredito .ajuste{margin-top:6px;font-size:12.5px;color:#6B4A10;background:#FFF6E3;border:1px solid #F0E0B4;border-radius:8px;padding:8px 10px}
+details.gab{margin-top:10px}
+details.gab summary{font-family:var(--mono);font-size:12px;color:var(--ink-soft);cursor:pointer}
+details.gab pre{font-family:var(--mono);font-size:12.5px;background:#F2F7FC;border:1px solid #D9E7F4;border-radius:9px;padding:10px 12px;margin-top:6px;white-space:pre-wrap}
+#pyStatus{font-family:var(--mono);font-size:11.5px;color:var(--ink-soft)}
+
+.viewer-bar{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.viewer-bar button,.viewer-bar a{font-family:var(--mono);font-size:12px;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:8px;padding:6px 12px;cursor:pointer;text-decoration:none}
+.viewer-bar a{border-color:var(--f1);color:var(--f1)}
+.viewer-frame{width:100%;height:calc(100vh - 190px);min-height:420px;border:1px solid var(--line);border-radius:12px;background:#fff}
+.viewer-note{font-size:12.5px;color:#6B5310;background:#FFF8EC;border:1px solid #F2DFAE;border-radius:9px;padding:8px 12px;margin-top:8px}
+
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,.ex-head:focus-visible,.player .ph:focus-visible{outline:2px solid var(--f1);outline-offset:2px}
+</style>
+</head>
+<body>
+<div id="app">
+<aside id="sidebar">
+  <div class="brand">Trilha<span>DS</span></div>
+  <div class="brand-sub">analista → cientista especialista</div>
+  <button class="nav-dash" data-go="dash">📈 Painel de progresso</button>
+  <nav id="nav"></nav>
+</aside>
+<div class="main">
+  <div class="topbar">
+    <button id="burger" aria-label="Abrir menu">☰</button>
+    <span class="crumb" id="crumb">Painel</span>
+    <span id="pyStatus"></span>
+    <span id="saveState">carregando…</span>
+  </div>
+  <div id="content"></div>
+</div>
+</div>
+
+<script>
+/* ================= DADOS ================= */
+const FASES=[
+ {id:"f1",cor:"var(--f1)",tag:"Fase 1",nome:"Fundamentos"},
+ {id:"f2",cor:"var(--f2)",tag:"Fase 2",nome:"Análise de Dados"},
+ {id:"f3",cor:"var(--f3)",tag:"Fase 3",nome:"Machine Learning"},
+ {id:"f4",cor:"var(--f4)",tag:"Fase 4",nome:"Aprofundamento"},
+ {id:"f5",cor:"var(--f5)",tag:"Fase 5",nome:"Produção e Carreira"},
+ {id:"f6",cor:"var(--f6)",tag:"Fase 6",nome:"Especialista — global"},
+];
+const MODULOS=[
+ {n:1,fase:"f1",titulo:"Python do zero",h:40,
+  topicos:"Sintaxe, estruturas de controle, funções, listas, dicionários, arquivos e POO básica.",
+  itens:[
+   {id:"m1v1",t:"video",n:"Curso em Vídeo — Python 3 (Mundo 1)",d:"Gustavo Guanabara. Assista aqui no portal.",u:"https://www.youtube.com/@CursoemVideo/playlists",embed:"PLHz_AreHm4dlKP6QQCekuIPky1CiwmdI6"},
+   {id:"m1c1",t:"curso",n:"Curso em Vídeo — Mundos 2 e 3 + exercícios",d:"Plataforma oficial, com desafios de cada aula.",u:"https://www.cursoemvideo.com/curso/python-3-mundo-1/"},
+   {id:"m1ce",t:"cert",n:"Emitir certificado gratuito do Curso em Vídeo",d:"Conclua as atividades na plataforma para liberar.",u:"https://www.cursoemvideo.com",cert:true},
+   {id:"m1p1",t:"pratica",n:"40–60 exercícios no Exercism (trilha Python)",d:"Prática com mentoria gratuita.",u:"https://exercism.org/tracks/python"},
+   {id:"m1e1",t:"entrega",n:"Repositório no GitHub com todos os exercícios",d:"Primeiro tijolo do portfólio."},
+  ]},
+ {n:2,fase:"f1",titulo:"Python para dados — NumPy e Pandas",h:40,
+  topicos:"Arrays, Series/DataFrame, leitura de CSV/Excel/SQL, filtros, groupby, merge/join e limpeza. Traduza seu SQL para Pandas.",
+  itens:[
+   {id:"m2c1",t:"curso",n:"Kaggle Learn — Python",d:"Curto e direto, com exercícios corrigidos.",u:"https://www.kaggle.com/learn/python",cert:true},
+   {id:"m2c2",t:"curso",n:"Kaggle Learn — Pandas",d:"O essencial de manipulação de dados.",u:"https://www.kaggle.com/learn/pandas",cert:true},
+   {id:"m2v1",t:"video",n:"Hashtag Programação — Python para dados",d:"Complemento em português.",u:"https://www.youtube.com/@HashtagProgramacao"},
+   {id:"m2l1",t:"livro",n:"Python Data Science Handbook (gratuito)",d:"Jake VanderPlas — capítulos de NumPy e Pandas.",u:"https://jakevdp.github.io/PythonDataScienceHandbook/"},
+   {id:"m2p1",t:"pratica",n:"Refazer em Pandas 5 consultas SQL do seu trabalho",d:"Com dados fictícios ou anonimizados — nunca dados reais de clientes."},
+   {id:"m2e1",t:"entrega",n:"Notebook comparando SQL × Pandas",d:"Mesmos problemas, duas soluções."},
+  ]},
+ {n:3,fase:"f1",titulo:"Estatística e probabilidade",h:40,
+  topicos:"Descritiva, distribuições, probabilidade, amostragem, intervalo de confiança, testes de hipótese, correlação e p-valor.",
+  itens:[
+   {id:"m3c1",t:"curso",n:"Khan Academy — Estatística e Probabilidade (PT-BR)",d:"Base teórica completa e gratuita.",u:"https://pt.khanacademy.org/math/statistics-probability"},
+   {id:"m3v1",t:"video",n:"StatQuest — Statistics Fundamentals",d:"O melhor professor de estatística do YouTube (ative legendas).",u:"https://www.youtube.com/@statquest/playlists",embed:"PLblh5JKOoLUK0FLuzwntyYI10UQFUhsY9"},
+   {id:"m3c2",t:"curso",n:"Seeing Theory — estatística visual interativa",d:"Brown University; intuição visual de probabilidade.",u:"https://seeing-theory.brown.edu"},
+   {id:"m3e1",t:"entrega",n:"Notebook de análise estatística com conclusões escritas",d:"Comunicar resultado é metade do trabalho."},
+  ]},
+ {n:4,fase:"f2",titulo:"Visualização de dados em Python",h:20,
+  topicos:"Matplotlib, Seaborn e Plotly. Você já domina storytelling no Power BI — aqui é a tradução para código.",
+  itens:[
+   {id:"m4c1",t:"curso",n:"Kaggle Learn — Data Visualization",d:"Seaborn na prática, com certificado.",u:"https://www.kaggle.com/learn/data-visualization",cert:true},
+   {id:"m4v1",t:"video",n:"freeCodeCamp — tutoriais de visualização",d:"Buscar 'data visualization python' no canal.",u:"https://www.youtube.com/@freecodecamp"},
+   {id:"m4p1",t:"pratica",n:"Recriar em Python 3 visuais de um dashboard seu do Power BI",d:"Compare esforço e resultado."},
+   {id:"m4e1",t:"entrega",n:"Galeria de gráficos publicada no GitHub",d:"README com imagem de cada gráfico."},
+  ]},
+ {n:5,fase:"f2",titulo:"Análise Exploratória (EDA) + 1º projeto",h:25,
+  topicos:"Processo completo: perguntas de negócio, limpeza, outliers, análises univariada/bivariada, insights e comunicação.",
+  itens:[
+   {id:"m5c1",t:"curso",n:"freeCodeCamp — Data Analysis with Python",d:"Com certificação gratuita ao final.",u:"https://www.freecodecamp.org/learn/data-analysis-with-python/",cert:true},
+   {id:"m5v1",t:"video",n:"Programação Dinâmica — análise de dados",d:"Canal brasileiro de referência.",u:"https://www.youtube.com/@ProgramacaoDinamica"},
+   {id:"m5p1",t:"pratica",n:"EDA completa do dataset Olist (e-commerce BR)",d:"3 perguntas de negócio; responda cada uma com dados.",u:"https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce"},
+   {id:"m5e1",t:"entrega",n:"Projeto 1 do portfólio — EDA com storytelling",d:"Conclusões em texto, como relatório executivo."},
+  ]},
+ {n:6,fase:"f2",titulo:"Matemática para Machine Learning",h:25,
+  topicos:"Álgebra linear (vetores, matrizes), derivada e gradiente, função de custo — o essencial para entender os algoritmos.",
+  itens:[
+   {id:"m6c1",t:"curso",n:"Khan Academy — Álgebra Linear",d:"Vetores, matrizes e transformações.",u:"https://pt.khanacademy.org/math/linear-algebra"},
+   {id:"m6v1",t:"video",n:"3Blue1Brown — Essence of Linear Algebra",d:"Intuição visual incomparável (legendado).",u:"https://www.youtube.com/@3blue1brown/playlists",embed:"PLZHQObOWTQDPD3MizzM2xVFitgF8hE_ab"},
+   {id:"m6e1",t:"entrega",n:"Notebook com regressão linear implementada do zero",d:"Comente cada passo do algoritmo."},
+  ]},
+ {n:7,fase:"f3",titulo:"Machine Learning — fundamentos",h:50,
+  topicos:"Supervisionado × não supervisionado, regressão linear/logística, árvores, KNN, treino/validação/teste, overfitting e scikit-learn.",
+  itens:[
+   {id:"m7c1",t:"curso",n:"Kaggle Learn — Intro to Machine Learning",d:"Primeiro modelo em poucas horas.",u:"https://www.kaggle.com/learn/intro-to-machine-learning",cert:true},
+   {id:"m7c2",t:"curso",n:"Google — ML Crash Course (PT-BR)",d:"Reforço com exercícios interativos.",u:"https://developers.google.com/machine-learning/crash-course"},
+   {id:"m7v1",t:"video",n:"StatQuest — Machine Learning",d:"Cada algoritmo explicado com clareza.",u:"https://www.youtube.com/@statquest/playlists",embed:"PLblh5JKOoLUICTaGLRoHQDuF_7q2GfuJF"},
+   {id:"m7l1",t:"livro",n:"ISLR — cap. 1 a 4 (PDF oficial gratuito)",d:"A referência mundial acessível de ML estatístico.",u:"https://www.statlearning.com"},
+   {id:"m7p1",t:"pratica",n:"Competição Titanic — primeiro submit",d:"Baseline próprio primeiro; depois estude soluções alheias.",u:"https://www.kaggle.com/competitions/titanic"},
+   {id:"m7e1",t:"entrega",n:"Projeto 2 do portfólio — classificação com relatório",d:"Métricas + interpretação de negócio."},
+  ]},
+ {n:8,fase:"f3",titulo:"ML intermediário",h:40,
+  topicos:"Random Forest, Gradient Boosting (XGBoost/LightGBM), validação cruzada, tuning, pipelines e dados desbalanceados.",
+  itens:[
+   {id:"m8c1",t:"curso",n:"Kaggle Learn — Intermediate ML",d:"Pipelines, missing values e XGBoost.",u:"https://www.kaggle.com/learn/intermediate-machine-learning",cert:true},
+   {id:"m8c2",t:"curso",n:"Andrew Ng — ML Specialization (auditar grátis)",d:"Referência mundial; certificado via auxílio financeiro.",u:"https://www.coursera.org/specializations/machine-learning-introduction"},
+   {id:"m8v1",t:"video",n:"Mario Filho — ML aplicado",d:"Canal brasileiro focado em ML que funciona na prática.",u:"https://www.youtube.com/@MarioFilhoML"},
+   {id:"m8p1",t:"pratica",n:"Competição House Prices — iterar e subir no ranking",d:"Documente cada iteração e o ganho de métrica.",u:"https://www.kaggle.com/competitions/house-prices-advanced-regression-techniques"},
+   {id:"m8e1",t:"entrega",n:"Projeto 3 do portfólio — regressão com pipeline completo",d:"Do dado bruto à previsão, reproduzível."},
+  ]},
+ {n:9,fase:"f3",titulo:"Feature engineering e avaliação de modelos",h:25,
+  topicos:"Criação/seleção de features, encoding, métricas (precision, recall, F1, ROC-AUC, RMSE), matriz de confusão e SHAP.",
+  itens:[
+   {id:"m9c1",t:"curso",n:"Kaggle Learn — Feature Engineering",d:"Transformar dados em sinal.",u:"https://www.kaggle.com/learn/feature-engineering",cert:true},
+   {id:"m9c2",t:"curso",n:"Kaggle Learn — ML Explainability",d:"SHAP e interpretabilidade.",u:"https://www.kaggle.com/learn/machine-learning-explainability",cert:true},
+   {id:"m9p1",t:"pratica",n:"Refatorar projetos 2 e 3 com novas features",d:"Compare métricas antes/depois."},
+   {id:"m9e1",t:"entrega",n:"Relatório comparativo + SHAP",d:"▲ Marco: comece a aplicar para vagas."},
+  ]},
+ {n:10,fase:"f4",titulo:"Deep Learning — introdução",h:35,
+  topicos:"Redes neurais, ativação, backpropagation (intuição), TensorFlow/Keras, regularização e quando usar DL × ML clássico.",
+  itens:[
+   {id:"m10c1",t:"curso",n:"Kaggle Learn — Intro to Deep Learning",d:"Keras na prática.",u:"https://www.kaggle.com/learn/intro-to-deep-learning",cert:true},
+   {id:"m10v1",t:"video",n:"3Blue1Brown — Neural Networks",d:"A melhor intuição visual sobre redes neurais.",u:"https://www.youtube.com/@3blue1brown/playlists",embed:"PLZHQObOWTQDNU6R1_67000Dx_ZCJB-3pi"},
+   {id:"m10c2",t:"curso",n:"freeCodeCamp — Machine Learning with Python",d:"Com certificação gratuita (TensorFlow).",u:"https://www.freecodecamp.org/learn/machine-learning-with-python/",cert:true},
+   {id:"m10e1",t:"entrega",n:"Projeto 4 — deep learning vs XGBoost",d:"Inclua a comparação DL × ML clássico."},
+  ]},
+ {n:11,fase:"f4",titulo:"Especialização — Séries Temporais ou NLP",h:30,
+  topicos:"Séries temporais: tendência, sazonalidade, ARIMA/Prophet, previsão de demanda (sinergia com ERP). NLP: texto, embeddings, sentimento.",
+  itens:[
+   {id:"m11c1",t:"curso",n:"Kaggle Learn — Time Series",d:"Recomendado pelo seu perfil (ERP/vendas).",u:"https://www.kaggle.com/learn/time-series",cert:true},
+   {id:"m11c2",t:"curso",n:"fast.ai — Practical Deep Learning (opcional)",d:"Se escolher visão/NLP, o melhor curso prático gratuito.",u:"https://course.fast.ai"},
+   {id:"m11v1",t:"video",n:"Téo Me Why — trilhas gratuitas de dados",d:"Cursos ao vivo em português.",u:"https://www.youtube.com/@teomewhy"},
+   {id:"m11p1",t:"pratica",n:"Prever vendas — competição Store Sales",d:"Ou dados públicos; nunca dados reais da empresa sem autorização.",u:"https://www.kaggle.com/competitions/store-sales-time-series-forecasting"},
+   {id:"m11e1",t:"entrega",n:"Projeto 5 — previsão de demanda",d:"Explique sazonalidade e erro de previsão para leigos."},
+  ]},
+ {n:12,fase:"f5",titulo:"Git, deploy e MLOps básico",h:30,
+  topicos:"Git/GitHub, ambientes virtuais, API com FastAPI, app com Streamlit, noções de Docker e ciclo de vida de modelos.",
+  itens:[
+   {id:"m12c1",t:"curso",n:"Curso em Vídeo — Git e GitHub",d:"Com certificado gratuito.",u:"https://www.cursoemvideo.com/curso/curso-de-git-e-github/",cert:true},
+   {id:"m12v1",t:"video",n:"freeCodeCamp — Streamlit / FastAPI",d:"Buscar os cursos completos no canal.",u:"https://www.youtube.com/@freecodecamp"},
+   {id:"m12p1",t:"pratica",n:"Publicar seu melhor modelo no Streamlit Cloud",d:"Hospedagem gratuita.",u:"https://streamlit.io/cloud"},
+   {id:"m12e1",t:"entrega",n:"Projeto 6 — app web com modelo em produção",d:"Link público no README e no LinkedIn."},
+  ]},
+ {n:13,fase:"f5",titulo:"Portfólio, Kaggle e entrevistas",h:30,
+  topicos:"GitHub e LinkedIn organizados, READMEs, storytelling dos projetos, perguntas técnicas e cases de negócio.",
+  itens:[
+   {id:"m13c1",t:"curso",n:"Kaggle — competições ativas",d:"Escolha 1 competição em andamento e participe.",u:"https://www.kaggle.com/competitions"},
+   {id:"m13v1",t:"video",n:"Mario Filho e Téo Me Why — carreira em dados",d:"Como o mercado brasileiro avalia candidatos.",u:"https://www.youtube.com/@MarioFilhoML"},
+   {id:"m13p1",t:"pratica",n:"Reescrever READMEs + 2 artigos no LinkedIn/Medium",d:"Explique como quem apresenta a um gestor."},
+   {id:"m13e1",t:"entrega",n:"Portfólio: 6 projetos + perfil atualizado",d:"■ Marco: núcleo completo."},
+  ]},
+ {n:14,fase:"f6",titulo:"A/B testing e inferência causal",h:30,
+  topicos:"Desenho de experimentos, poder estatístico, métricas de guardrail, vieses e causalidade — o que separa sênior de júnior em empresas de produto.",
+  itens:[
+   {id:"m14c1",t:"curso",n:"Udacity — A/B Testing by Google (gratuito)",d:"O curso clássico de experimentação.",u:"https://www.udacity.com/course/ab-testing--ud257"},
+   {id:"m14l1",t:"livro",n:"Causal Inference for the Brave and True (gratuito)",d:"De Matheus Facure (autor brasileiro) — referência internacional, em Python.",u:"https://matheusfacure.github.io/python-causality-handbook/"},
+   {id:"m14e1",t:"entrega",n:"Relatório de experimento A/B com recomendação",d:"Formato usado em entrevistas de empresas de produto/tech."},
+  ]},
+ {n:15,fase:"f6",titulo:"Cloud para dados (AWS / GCP / Azure)",h:35,
+  topicos:"Conceitos de nuvem, storage, data warehouse (BigQuery), pipelines e treino/serviço de modelos na nuvem.",
+  itens:[
+   {id:"m15c1",t:"curso",n:"Microsoft Learn — fundamentos de dados (DP-900)",d:"Trilhas gratuitas com badges.",u:"https://learn.microsoft.com/pt-br/training/"},
+   {id:"m15c2",t:"curso",n:"AWS Skill Builder — fundamentos gratuitos",d:"Base do Cloud Practitioner.",u:"https://skillbuilder.aws"},
+   {id:"m15c3",t:"curso",n:"Google Cloud Skills Boost",d:"Labs práticos; use o BigQuery Sandbox (gratuito).",u:"https://www.cloudskillsboost.google"},
+   {id:"m15e1",t:"entrega",n:"Projeto 7 — análise/modelo rodando na nuvem",d:"Aprofunde na nuvem mais pedida nas vagas que você mira."},
+  ]},
+ {n:16,fase:"f6",titulo:"MLOps e engenharia de ML",h:35,
+  topicos:"Docker, MLflow (tracking/registry), orquestração, CI/CD com GitHub Actions, monitoramento e drift de modelos.",
+  itens:[
+   {id:"m16c1",t:"curso",n:"MLOps Zoomcamp — DataTalksClub (gratuito, com certificado)",d:"Curso completo; certificado ao concluir os projetos.",u:"https://github.com/DataTalksClub/mlops-zoomcamp",cert:true},
+   {id:"m16c2",t:"curso",n:"Made With ML",d:"Boas práticas de ML em produção, gratuito.",u:"https://madewithml.com"},
+   {id:"m16v1",t:"video",n:"DataTalksClub — aulas do Zoomcamp",d:"Todas as aulas ficam no canal.",u:"https://www.youtube.com/@DataTalksClub"},
+   {id:"m16e1",t:"entrega",n:"Esteira completa: treino → deploy → monitoramento",d:"O repositório que impressiona em vaga internacional."},
+  ]},
+ {n:17,fase:"f6",titulo:"IA Generativa e LLMs",h:35,
+  topicos:"Como LLMs funcionam, prompt engineering, embeddings, RAG, APIs de LLM e avaliação de aplicações de IA.",
+  itens:[
+   {id:"m17c1",t:"curso",n:"Hugging Face — cursos gratuitos (LLM/NLP/Agents)",d:"A plataforma central do ecossistema open source.",u:"https://huggingface.co/learn"},
+   {id:"m17c2",t:"curso",n:"DeepLearning.AI — short courses gratuitos",d:"Prompt engineering, RAG, agentes; 1-2h cada.",u:"https://www.deeplearning.ai/short-courses/"},
+   {id:"m17v1",t:"video",n:"Andrej Karpathy — Neural Networks: Zero to Hero",d:"Construa um GPT do zero.",u:"https://www.youtube.com/@AndrejKarpathy/playlists"},
+   {id:"m17e1",t:"entrega",n:"Projeto 8 — app de RAG publicado (Streamlit)",d:"A habilidade mais demandada do mercado atual."},
+  ]},
+ {n:18,fase:"f6",titulo:"Inglês técnico e preparação internacional",h:30,
+  topicos:"Vocabulário técnico, entrevistas em inglês, SQL/Python de entrevista, portfólio bilíngue e vagas globais remotas.",
+  itens:[
+   {id:"m18p1",t:"pratica",n:"Consumir as Fases 4-6 em inglês, sem legenda",d:"StatQuest, Karpathy e documentações são seu 'curso de inglês técnico'."},
+   {id:"m18c1",t:"curso",n:"LeetCode — SQL 50 + Python fácil/médio",d:"Padrão de entrevista internacional (plano gratuito).",u:"https://leetcode.com/studyplan/top-sql-50/"},
+   {id:"m18c2",t:"curso",n:"StrataScratch — questões reais de entrevistas",d:"Muitas questões gratuitas de empresas reais.",u:"https://www.stratascratch.com"},
+   {id:"m18p2",t:"pratica",n:"Traduzir portfólio: READMEs, LinkedIn e CV em inglês",d:"Vagas remotas: LinkedIn global, Wellfound, Turing, Toptal."},
+   {id:"m18e1",t:"entrega",n:"3 entrevistas simuladas em inglês + CV bilíngue",d:"Peça feedback na comunidade Data Hackers."},
+  ]},
+];
+
+/* ================= EXERCÍCIOS ================= */
+const EXERCICIOS=[
+ {id:"e1",mod:1,titulo:"Par ou ímpar",
+  enun:'Crie a função <code>par_ou_impar(n)</code> que recebe um número inteiro e retorna a string <code>"par"</code> ou <code>"ímpar"</code>.',
+  esperado:'par_ou_impar(4) → "par"\npar_ou_impar(7) → "ímpar"\npar_ou_impar(0) → "par"',
+  starter:'def par_ou_impar(n):\n    # seu código aqui\n    ...\n\n# teste você mesmo antes de verificar:\nprint(par_ou_impar(4))',
+  test:'assert par_ou_impar(4)=="par", f"par_ou_impar(4) deveria ser \'par\', retornou {par_ou_impar(4)!r}"\nassert par_ou_impar(7)=="ímpar", f"par_ou_impar(7) deveria ser \'ímpar\', retornou {par_ou_impar(7)!r}"\nassert par_ou_impar(0)=="par", f"par_ou_impar(0) deveria ser \'par\' (zero é par), retornou {par_ou_impar(0)!r}"\nassert par_ou_impar(-3)=="ímpar", f"par_ou_impar(-3) deveria ser \'ímpar\', retornou {par_ou_impar(-3)!r}"',
+  dica:"Use o operador % (resto da divisão): se n % 2 == 0, o número é par. Lembre que zero é par e o teste também usa número negativo.",
+  gab:'def par_ou_impar(n):\n    if n % 2 == 0:\n        return "par"\n    return "ímpar"'},
+ {id:"e2",mod:1,titulo:"FizzBuzz das vendas",
+  enun:'Clássico de entrevista: crie <code>fizzbuzz(n)</code> que retorna uma <b>lista</b> de 1 até n onde múltiplos de 3 viram <code>"Fizz"</code>, múltiplos de 5 viram <code>"Buzz"</code>, múltiplos de ambos viram <code>"FizzBuzz"</code> e os demais ficam como número.',
+  esperado:'fizzbuzz(5) → [1, 2, "Fizz", 4, "Buzz"]\nfizzbuzz(15)[14] → "FizzBuzz"',
+  starter:'def fizzbuzz(n):\n    resultado = []\n    # seu código aqui\n    return resultado\n\nprint(fizzbuzz(5))',
+  test:'r=fizzbuzz(15)\nassert isinstance(r,list), "A função deve retornar uma lista"\nassert len(r)==15, f"fizzbuzz(15) deve ter 15 elementos, tem {len(r)}"\nassert r[0]==1 and r[1]==2, "Números que não são múltiplos de 3 nem 5 devem ficar como inteiros"\nassert r[2]=="Fizz", f"posição 3 deveria ser \'Fizz\', veio {r[2]!r}"\nassert r[4]=="Buzz", f"posição 5 deveria ser \'Buzz\', veio {r[4]!r}"\nassert r[14]=="FizzBuzz", f"posição 15 deveria ser \'FizzBuzz\', veio {r[14]!r}"',
+  dica:"Teste PRIMEIRO a condição de múltiplo de 3 E 5 (n % 15 == 0), senão 'Fizz' ou 'Buzz' capturam antes. Use range(1, n+1).",
+  gab:'def fizzbuzz(n):\n    resultado = []\n    for i in range(1, n + 1):\n        if i % 15 == 0:\n            resultado.append("FizzBuzz")\n        elif i % 3 == 0:\n            resultado.append("Fizz")\n        elif i % 5 == 0:\n            resultado.append("Buzz")\n        else:\n            resultado.append(i)\n    return resultado'},
+ {id:"e3",mod:1,titulo:"Média de vendas",
+  enun:'Crie <code>media(valores)</code> que recebe uma lista de números e retorna a média aritmética arredondada para 2 casas decimais (use <code>round</code>). Se a lista estiver vazia, retorne <code>0</code>.',
+  esperado:'media([100, 200, 250]) → 183.33\nmedia([]) → 0',
+  starter:'def media(valores):\n    # seu código aqui\n    ...\n\nprint(media([100, 200, 250]))',
+  test:'assert media([100,200,250])==183.33, f"media([100,200,250]) deveria ser 183.33, retornou {media([100,200,250])}"\nassert media([10])==10.0 or media([10])==10, "média de um único valor é o próprio valor"\nassert media([])==0, "lista vazia deve retornar 0 (proteja a divisão por zero!)"',
+  dica:"sum(valores) / len(valores) resolve — mas proteja o caso de lista vazia ANTES de dividir, senão dá ZeroDivisionError. Isso vale para qualquer denominador na sua carreira.",
+  gab:'def media(valores):\n    if len(valores) == 0:\n        return 0\n    return round(sum(valores) / len(valores), 2)'},
+ {id:"e4",mod:2,titulo:"GROUP BY em Python puro",
+  enun:'Você faz isso em SQL todo dia. Agora em Python: crie <code>total_por_regiao(vendas)</code> que recebe uma lista de dicionários com as chaves <code>"regiao"</code> e <code>"valor"</code> e retorna um dicionário {região: soma}.',
+  esperado:'total_por_regiao([\n  {"regiao": "Sul", "valor": 100},\n  {"regiao": "Norte", "valor": 50},\n  {"regiao": "Sul", "valor": 30},\n]) → {"Sul": 130, "Norte": 50}',
+  starter:'def total_por_regiao(vendas):\n    totais = {}\n    # seu código aqui\n    return totais\n\nvendas = [\n    {"regiao": "Sul", "valor": 100},\n    {"regiao": "Norte", "valor": 50},\n    {"regiao": "Sul", "valor": 30},\n]\nprint(total_por_regiao(vendas))',
+  test:'v=[{"regiao":"Sul","valor":100},{"regiao":"Norte","valor":50},{"regiao":"Sul","valor":30}]\nr=total_por_regiao(v)\nassert r=={"Sul":130,"Norte":50}, f"esperado Sul=130 e Norte=50, retornou {r}"\nassert total_por_regiao([])=={}, "lista vazia deve retornar dicionário vazio"',
+  dica:"Percorra a lista e use dict.get: totais[v['regiao']] = totais.get(v['regiao'], 0) + v['valor']. É o equivalente do SELECT regiao, SUM(valor) ... GROUP BY regiao.",
+  gab:'def total_por_regiao(vendas):\n    totais = {}\n    for v in vendas:\n        totais[v["regiao"]] = totais.get(v["regiao"], 0) + v["valor"]\n    return totais'},
+ {id:"e5",mod:2,titulo:"INNER JOIN em Python puro",
+  enun:'Crie <code>juntar(clientes, pedidos)</code> que faz o equivalente a um INNER JOIN por <code>"id"</code>/<code>"id_cliente"</code>: retorna uma lista de dicionários com <code>"nome"</code> e <code>"valor"</code> de cada pedido que tem cliente correspondente.',
+  esperado:'clientes = [{"id": 1, "nome": "Ana"}, {"id": 2, "nome": "Bruno"}]\npedidos = [{"id_cliente": 1, "valor": 100}, {"id_cliente": 3, "valor": 999}]\njuntar(clientes, pedidos) → [{"nome": "Ana", "valor": 100}]',
+  starter:'def juntar(clientes, pedidos):\n    resultado = []\n    # dica: crie primeiro um dicionário id -> nome\n    return resultado\n\nclientes = [{"id": 1, "nome": "Ana"}, {"id": 2, "nome": "Bruno"}]\npedidos = [{"id_cliente": 1, "valor": 100}, {"id_cliente": 3, "valor": 999}]\nprint(juntar(clientes, pedidos))',
+  test:'c=[{"id":1,"nome":"Ana"},{"id":2,"nome":"Bruno"}]\np=[{"id_cliente":1,"valor":100},{"id_cliente":3,"valor":999},{"id_cliente":2,"valor":40}]\nr=juntar(c,p)\nassert r==[{"nome":"Ana","valor":100},{"nome":"Bruno","valor":40}], f"esperado [Ana/100, Bruno/40] — o pedido do cliente 3 não tem cliente e deve ser descartado (INNER JOIN). Retornou {r}"',
+  dica:"Monte um índice: mapa = {c['id']: c['nome'] for c in clientes}. Depois, para cada pedido, inclua no resultado apenas se pedido['id_cliente'] estiver no mapa — exatamente o comportamento do INNER JOIN (descarta o que não casa).",
+  gab:'def juntar(clientes, pedidos):\n    mapa = {c["id"]: c["nome"] for c in clientes}\n    resultado = []\n    for ped in pedidos:\n        if ped["id_cliente"] in mapa:\n            resultado.append({"nome": mapa[ped["id_cliente"]], "valor": ped["valor"]})\n    return resultado'},
+ {id:"e6",mod:3,titulo:"Desvio padrão amostral",
+  enun:'Crie <code>desvio_padrao(amostra)</code> que calcula o desvio padrão <b>amostral</b> (divisor n−1), arredondado para 4 casas. Use apenas <code>math</code> — nada de bibliotecas prontas: o objetivo é entender a fórmula.',
+  esperado:'desvio_padrao([10, 12, 23, 23, 16, 23, 21, 16]) → 5.2372',
+  starter:'import math\n\ndef desvio_padrao(amostra):\n    # 1) calcule a média\n    # 2) some os quadrados das diferenças para a média\n    # 3) divida por (n - 1) e tire a raiz\n    ...\n\nprint(desvio_padrao([10, 12, 23, 23, 16, 23, 21, 16]))',
+  test:'r=desvio_padrao([10,12,23,23,16,23,21,16])\nassert abs(r-5.2372)<0.001, f"esperado 5.2372 (divisor n-1, amostral). Retornou {r}. Se veio ~4.898, você usou n (populacional) em vez de n-1."\nassert abs(desvio_padrao([5,5,5])-0)<1e-9, "valores iguais têm desvio padrão 0"',
+  dica:"média = sum(a)/n; soma_q = sum((x - média)**2 for x in a); resultado = math.sqrt(soma_q / (n - 1)). O erro mais comum é dividir por n — isso é o desvio populacional, não o amostral.",
+  gab:'import math\n\ndef desvio_padrao(amostra):\n    n = len(amostra)\n    m = sum(amostra) / n\n    soma_q = sum((x - m) ** 2 for x in amostra)\n    return round(math.sqrt(soma_q / (n - 1)), 4)'},
+ {id:"e7",mod:3,titulo:"Z-score",
+  enun:'Crie <code>z_score(x, media, desvio)</code> que retorna quantos desvios padrão o valor x está da média, arredondado para 2 casas. É a base de padronização e detecção de outliers.',
+  esperado:'z_score(85, 70, 10) → 1.5\nz_score(55, 70, 10) → -1.5',
+  starter:'def z_score(x, media, desvio):\n    ...\n\nprint(z_score(85, 70, 10))',
+  test:'assert z_score(85,70,10)==1.5, f"esperado 1.5, retornou {z_score(85,70,10)}"\nassert z_score(55,70,10)==-1.5, f"esperado -1.5, retornou {z_score(55,70,10)}"\nassert z_score(70,70,10)==0.0 or z_score(70,70,10)==0, "valor igual à média tem z-score 0"',
+  dica:"z = (x − média) / desvio. Um z-score acima de 3 ou abaixo de −3 costuma indicar outlier.",
+  gab:'def z_score(x, media, desvio):\n    return round((x - media) / desvio, 2)'},
+ {id:"e8",mod:4,titulo:"Gráfico de barras em ASCII",
+  enun:'Antes do matplotlib, o conceito: crie <code>grafico_barras(dados)</code> que recebe um dict {categoria: quantidade} e retorna uma <b>lista de strings</b> no formato <code>"Categoria: ####"</code> (um # por unidade), na ordem do dicionário.',
+  esperado:'grafico_barras({"Sul": 4, "Norte": 2}) →\n["Sul: ####", "Norte: ##"]',
+  starter:'def grafico_barras(dados):\n    linhas = []\n    # seu código aqui\n    return linhas\n\nfor linha in grafico_barras({"Sul": 4, "Norte": 2}):\n    print(linha)',
+  test:'r=grafico_barras({"Sul":4,"Norte":2})\nassert r==["Sul: ####","Norte: ##"], f"esperado [\'Sul: ####\', \'Norte: ##\'], retornou {r}"\nassert grafico_barras({"X":0})==["X: "], "categoria com 0 deve gerar barra vazia (\'X: \')"',
+  dica:'Multiplicação de string resolve: "#" * quantidade. Formate com f-string ou concatenação: f"{categoria}: " + "#" * qtd.',
+  gab:'def grafico_barras(dados):\n    linhas = []\n    for categoria, qtd in dados.items():\n        linhas.append(f"{categoria}: " + "#" * qtd)\n    return linhas'},
+ {id:"e9",mod:6,titulo:"Um passo de gradiente descendente",
+  enun:'O coração do ML: para minimizar <code>f(x) = (x − 3)²</code>, a derivada é <code>f\'(x) = 2(x − 3)</code>. Crie <code>passo_gradiente(x, lr)</code> que retorna o novo x após um passo: <code>x − lr · f\'(x)</code>, arredondado para 6 casas.',
+  esperado:'passo_gradiente(0, 0.1) → 0.6   (andou em direção ao mínimo x = 3)\npasso_gradiente(3, 0.1) → 3.0   (no mínimo, o gradiente é zero)',
+  starter:'def passo_gradiente(x, lr):\n    ...\n\n# veja a convergência acontecendo:\nx = 0\nfor i in range(20):\n    x = passo_gradiente(x, 0.1)\nprint(x)  # deve se aproximar de 3',
+  test:'assert passo_gradiente(0,0.1)==0.6, f"passo_gradiente(0, 0.1) deveria ser 0.6, retornou {passo_gradiente(0,0.1)}"\nassert passo_gradiente(3,0.1)==3.0, "no mínimo (x=3) o gradiente é 0 e x não muda"\nx=0\nfor _ in range(50): x=passo_gradiente(x,0.1)\nassert abs(x-3)<0.01, f"após 50 passos, x deveria convergir para ~3, chegou em {x}"',
+  dica:"gradiente = 2 * (x - 3); novo_x = x - lr * gradiente. Se o teste de convergência falhar, confira o sinal: descemos o gradiente (subtração), não subimos.",
+  gab:'def passo_gradiente(x, lr):\n    gradiente = 2 * (x - 3)\n    return round(x - lr * gradiente, 6)'},
+ {id:"e10",mod:7,titulo:"Matriz de confusão e acurácia",
+  enun:'Crie <code>matriz_confusao(y_true, y_pred)</code> que retorna um dict com <code>"tp"</code>, <code>"tn"</code>, <code>"fp"</code>, <code>"fn"</code> (classe positiva = 1) e <code>acuracia(y_true, y_pred)</code> arredondada para 4 casas.',
+  esperado:'y_true = [1, 0, 1, 1, 0]\ny_pred = [1, 0, 0, 1, 1]\nmatriz_confusao(...) → {"tp": 2, "tn": 1, "fp": 1, "fn": 1}\nacuracia(...) → 0.6',
+  starter:'def matriz_confusao(y_true, y_pred):\n    m = {"tp": 0, "tn": 0, "fp": 0, "fn": 0}\n    # percorra os pares (real, previsto) com zip\n    return m\n\ndef acuracia(y_true, y_pred):\n    ...\n\ny_true = [1, 0, 1, 1, 0]\ny_pred = [1, 0, 0, 1, 1]\nprint(matriz_confusao(y_true, y_pred))\nprint(acuracia(y_true, y_pred))',
+  test:'yt=[1,0,1,1,0]; yp=[1,0,0,1,1]\nm=matriz_confusao(yt,yp)\nassert m=={"tp":2,"tn":1,"fp":1,"fn":1}, f"esperado tp=2, tn=1, fp=1, fn=1 — retornou {m}. Lembre: FP = previu 1 e era 0; FN = previu 0 e era 1."\nassert acuracia(yt,yp)==0.6, f"acurácia esperada 0.6 (3 acertos em 5), retornou {acuracia(yt,yp)}"',
+  dica:"Use zip(y_true, y_pred). TP: real 1 e previsto 1. TN: 0 e 0. FP: real 0, previsto 1 (alarme falso). FN: real 1, previsto 0 (deixou passar). Acurácia = (tp + tn) / total.",
+  gab:'def matriz_confusao(y_true, y_pred):\n    m = {"tp": 0, "tn": 0, "fp": 0, "fn": 0}\n    for real, prev in zip(y_true, y_pred):\n        if real == 1 and prev == 1: m["tp"] += 1\n        elif real == 0 and prev == 0: m["tn"] += 1\n        elif real == 0 and prev == 1: m["fp"] += 1\n        else: m["fn"] += 1\n    return m\n\ndef acuracia(y_true, y_pred):\n    acertos = sum(1 for r, p in zip(y_true, y_pred) if r == p)\n    return round(acertos / len(y_true), 4)'},
+ {id:"e11",mod:7,titulo:"Train/test split manual",
+  enun:'Crie <code>dividir_treino_teste(dados, frac_treino)</code> que devolve uma tupla <code>(treino, teste)</code>: os primeiros <code>int(len · frac)</code> elementos vão para treino, o restante para teste. (Na prática se embaralha antes — aqui o foco é a mecânica da divisão.)',
+  esperado:'dividir_treino_teste([1,2,3,4,5,6,7,8,9,10], 0.8) → ([1..8], [9, 10])',
+  starter:'def dividir_treino_teste(dados, frac_treino):\n    # dica: fatiamento de listas resolve em 2 linhas\n    ...\n\nprint(dividir_treino_teste(list(range(1, 11)), 0.8))',
+  test:'tr,te=dividir_treino_teste(list(range(1,11)),0.8)\nassert tr==[1,2,3,4,5,6,7,8], f"treino esperado [1..8], veio {tr}"\nassert te==[9,10], f"teste esperado [9, 10], veio {te}"\ntr,te=dividir_treino_teste([1,2,3],0.5)\nassert len(tr)==1 and len(te)==2, "com frac 0.5 e 3 itens, int(1.5)=1 vai para treino"',
+  dica:"corte = int(len(dados) * frac_treino); return dados[:corte], dados[corte:]. Nunca avalie um modelo nos dados de treino — é por isso que essa divisão existe.",
+  gab:'def dividir_treino_teste(dados, frac_treino):\n    corte = int(len(dados) * frac_treino)\n    return dados[:corte], dados[corte:]'},
+ {id:"e12",mod:8,titulo:"Normalização min-max",
+  enun:'Crie <code>normalizar(valores)</code> que aplica min-max scaling: cada valor vira <code>(x − mín) / (máx − mín)</code>, arredondado para 4 casas. Se todos os valores forem iguais, retorne uma lista de zeros (proteja a divisão!).',
+  esperado:'normalizar([10, 20, 30]) → [0.0, 0.5, 1.0]\nnormalizar([5, 5]) → [0, 0]',
+  starter:'def normalizar(valores):\n    ...\n\nprint(normalizar([10, 20, 30]))',
+  test:'assert normalizar([10,20,30])==[0.0,0.5,1.0], f"esperado [0.0, 0.5, 1.0], retornou {normalizar([10,20,30])}"\nassert normalizar([5,5])==[0,0] or normalizar([5,5])==[0.0,0.0], "valores iguais: retorne zeros (evite dividir por zero)"',
+  dica:"mn, mx = min(valores), max(valores). Se mx == mn, retorne [0] * len(valores). Senão, list comprehension: [round((x - mn) / (mx - mn), 4) for x in valores].",
+  gab:'def normalizar(valores):\n    mn, mx = min(valores), max(valores)\n    if mx == mn:\n        return [0] * len(valores)\n    return [round((x - mn) / (mx - mn), 4) for x in valores]'},
+ {id:"e13",mod:9,titulo:"Precision, recall e F1",
+  enun:'Crie <code>f1_score(tp, fp, fn)</code>: precision = tp/(tp+fp), recall = tp/(tp+fn), F1 = média harmônica <code>2·P·R/(P+R)</code>, arredondado para 4 casas. Se qualquer denominador for zero, retorne <code>0</code>.',
+  esperado:'f1_score(8, 2, 4) → 0.7273   (P = 0.8, R ≈ 0.667)\nf1_score(0, 0, 5) → 0',
+  starter:'def f1_score(tp, fp, fn):\n    ...\n\nprint(f1_score(8, 2, 4))',
+  test:'assert f1_score(8,2,4)==0.7273, f"esperado 0.7273, retornou {f1_score(8,2,4)}"\nassert f1_score(0,0,5)==0, "sem nenhum TP, F1 é 0 (e cuidado com divisão por zero)"\nassert f1_score(10,0,0)==1.0, "modelo perfeito: F1 = 1.0"',
+  dica:"Proteja cada divisão: se (tp+fp)==0 ou (tp+fn)==0, retorne 0; se (P+R)==0, retorne 0. Em dados desbalanceados (fraude, churn), F1 diz muito mais que acurácia — tema certo de entrevista.",
+  gab:'def f1_score(tp, fp, fn):\n    if (tp + fp) == 0 or (tp + fn) == 0:\n        return 0\n    p = tp / (tp + fp)\n    r = tp / (tp + fn)\n    if (p + r) == 0:\n        return 0\n    return round(2 * p * r / (p + r), 4)'},
+ {id:"e14",mod:11,titulo:"Média móvel (séries temporais)",
+  enun:'Crie <code>media_movel(serie, janela)</code> que retorna a lista de médias móveis (arredondadas para 2 casas). O resultado tem <code>len(serie) − janela + 1</code> elementos. É a primeira ferramenta de suavização de qualquer previsão de demanda.',
+  esperado:'media_movel([10, 20, 30, 40, 50], 3) → [20.0, 30.0, 40.0]',
+  starter:'def media_movel(serie, janela):\n    resultado = []\n    # dica: fatie a lista com serie[i:i+janela]\n    return resultado\n\nprint(media_movel([10, 20, 30, 40, 50], 3))',
+  test:'assert media_movel([10,20,30,40,50],3)==[20.0,30.0,40.0], f"esperado [20.0, 30.0, 40.0], retornou {media_movel([10,20,30,40,50],3)}"\nassert media_movel([1,2],2)==[1.5], f"esperado [1.5], retornou {media_movel([1,2],2)}"',
+  dica:"for i in range(len(serie) - janela + 1): fatia = serie[i:i+janela]; adicione round(sum(fatia)/janela, 2). O erro comum é o limite do range — confira o +1.",
+  gab:'def media_movel(serie, janela):\n    resultado = []\n    for i in range(len(serie) - janela + 1):\n        fatia = serie[i:i + janela]\n        resultado.append(round(sum(fatia) / janela, 2))\n    return resultado'},
+ {id:"e15",mod:14,titulo:"Lift de um teste A/B",
+  enun:'Crie <code>lift(conv_a, tot_a, conv_b, tot_b)</code> que calcula as taxas de conversão dos grupos A (controle) e B (variante) e retorna o lift percentual de B sobre A: <code>(taxa_b / taxa_a − 1) · 100</code>, arredondado para 2 casas.',
+  esperado:'lift(50, 1000, 65, 1000) → 30.0   (5% → 6,5% = +30%)',
+  starter:'def lift(conv_a, tot_a, conv_b, tot_b):\n    ...\n\nprint(lift(50, 1000, 65, 1000))',
+  test:'assert lift(50,1000,65,1000)==30.0, f"esperado 30.0, retornou {lift(50,1000,65,1000)}"\nassert lift(100,1000,90,1000)==-10.0, f"variante pior deve dar lift negativo (-10.0), retornou {lift(100,1000,90,1000)}"',
+  dica:"taxa_a = conv_a / tot_a; taxa_b = conv_b / tot_b; lift = (taxa_b / taxa_a - 1) * 100. Atenção: lift positivo NÃO prova significância estatística — é isso que o módulo 14 ensina a testar.",
+  gab:'def lift(conv_a, tot_a, conv_b, tot_b):\n    taxa_a = conv_a / tot_a\n    taxa_b = conv_b / tot_b\n    return round((taxa_b / taxa_a - 1) * 100, 2)'},
+ {id:"e16",mod:17,titulo:"Bag of words (base de NLP/LLM)",
+  enun:'Crie <code>bag_of_words(texto)</code> que retorna um dict com a contagem de cada palavra: converta para minúsculas, separe por espaços e remova a pontuação <code>.,!?</code> das bordas de cada palavra (use <code>strip</code>).',
+  esperado:'bag_of_words("O dado é o novo petróleo. Dado!") →\n{"o": 2, "dado": 2, "é": 1, "novo": 1, "petróleo": 1}',
+  starter:'def bag_of_words(texto):\n    contagem = {}\n    # minúsculas -> split -> strip(".,!?") -> contar\n    return contagem\n\nprint(bag_of_words("O dado é o novo petróleo. Dado!"))',
+  test:'r=bag_of_words("O dado é o novo petróleo. Dado!")\nassert r=={"o":2,"dado":2,"é":1,"novo":1,"petróleo":1}, f"esperado o:2, dado:2, é:1, novo:1, petróleo:1 — retornou {r}. Confira minúsculas e o strip da pontuação."\nassert bag_of_words("")=={}, "texto vazio retorna dict vazio"',
+  dica:'para cada p in texto.lower().split(): p = p.strip(".,!?"); se p não for vazio, contagem[p] = contagem.get(p, 0) + 1. Vetorizar texto em números é o primeiro passo de todo modelo de linguagem.',
+  gab:'def bag_of_words(texto):\n    contagem = {}\n    for p in texto.lower().split():\n        p = p.strip(".,!?")\n        if p:\n            contagem[p] = contagem.get(p, 0) + 1\n    return contagem'},
+];
+
+const TOTAL_H=MODULOS.reduce((s,m)=>s+m.h,0);
+const TOTAL_CERT=MODULOS.reduce((s,m)=>s+m.itens.filter(i=>i.cert).length,0);
+const H_EMPREGAVEL=MODULOS.filter(m=>m.n<=9).reduce((s,m)=>s+m.h,0);
+const H_NUCLEO=MODULOS.filter(m=>m.n<=13).reduce((s,m)=>s+m.h,0);
+const exDoMod=n=>EXERCICIOS.filter(e=>e.mod===n);
+
+/* ================= ESTADO ================= */
+const KEY="trilha_ds_progresso_v2";
+let estado={},storageOk=false;
+function temStorage(){return typeof window.storage!=="undefined"&&window.storage;}
+async function carregar(){
+  try{
+    if(!temStorage()) throw new Error("sem storage");
+    const r=await window.storage.get(KEY);
+    estado=r&&r.value?JSON.parse(r.value):{};storageOk=true;
+  }catch(e){
+    try{const v=localStorage.getItem(KEY);estado=v?JSON.parse(v):{};storageOk=true;}
+    catch(e2){estado={};storageOk=false;}
+  }
+  setSaveMsg();
+}
+let saveTimer=null;
+function salvar(){
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(async()=>{
+    try{
+      if(temStorage()){await window.storage.set(KEY,JSON.stringify(estado));}
+      else{localStorage.setItem(KEY,JSON.stringify(estado));}
+      storageOk=true;
+    }catch(e){
+      try{localStorage.setItem(KEY,JSON.stringify(estado));storageOk=true;}
+      catch(e2){storageOk=false;}
+    }
+    setSaveMsg();
+  },400);
+}
+function setSaveMsg(){
+  const el=document.getElementById("saveState");
+  if(!el)return;
+  if(storageOk){el.className="ok";el.textContent="progresso salvo";}
+  else{el.className="warn";el.textContent="progresso só nesta sessão";}
+}
+
+/* ================= PROGRESSO ================= */
+function progressoModulo(m){
+  const exs=exDoMod(m.n);
+  const total=m.itens.length+exs.length;
+  const done=m.itens.filter(it=>estado[it.id]).length+exs.filter(e=>estado["ex_"+e.id]).length;
+  return total?done/total:0;
+}
+function horasFeitas(){return MODULOS.reduce((s,m)=>s+m.h*progressoModulo(m),0);}
+
+/* ================= PYODIDE (compilador) ================= */
+let pyodidePromise=null;
+const HARNESS=`
+import sys, io, json, traceback
+def _run_exercise(user_code, test_code):
+    ns = {}
+    buf = io.StringIO()
+    old = sys.stdout
+    sys.stdout = buf
+    ok = True
+    err = ""
+    try:
+        exec(user_code, ns)
+        exec(test_code, ns)
+    except AssertionError as e:
+        ok = False
+        err = "TESTE: " + str(e)
+    except Exception:
+        ok = False
+        err = traceback.format_exc(limit=3)
+    finally:
+        sys.stdout = old
+    return json.dumps({"ok": ok, "out": buf.getvalue(), "err": err})
+`;
+function getPyodide(){
+  if(!pyodidePromise){
+    const st=document.getElementById("pyStatus");
+    st.textContent="⏳ carregando Python…";
+    pyodidePromise=new Promise((res,rej)=>{
+      const s=document.createElement("script");
+      s.src="https://cdn.jsdelivr.net/pyodide/v0.25.1/full/pyodide.js";
+      s.onload=async()=>{
+        try{
+          const py=await loadPyodide({indexURL:"https://cdn.jsdelivr.net/pyodide/v0.25.1/full/"});
+          py.runPython(HARNESS);
+          st.textContent="🐍 Python pronto";
+          res(py);
+        }catch(e){rej(e);}
+      };
+      s.onerror=()=>rej(new Error("cdn"));
+      document.head.appendChild(s);
+    }).catch(e=>{
+      st.textContent="⚠ Python indisponível";
+      pyodidePromise=null;
+      throw e;
+    });
+  }
+  return pyodidePromise;
+}
+async function executarExercicio(ex,btn){
+  const card=btn.closest(".ex");
+  const saida=card.querySelector(".saida");
+  const pre=card.querySelector(".saida pre");
+  const ver=card.querySelector(".veredito");
+  const code=card.querySelector(".editor").value;
+  btn.disabled=true;btn.textContent="⏳ Executando…";
+  saida.classList.add("show");pre.textContent="";
+  ver.className="veredito";ver.innerHTML="Executando no ambiente Python do navegador…";
+  try{
+    const py=await getPyodide();
+    py.globals.set("uc",code);
+    py.globals.set("tc",ex.test);
+    const res=JSON.parse(py.runPython("_run_exercise(uc, tc)"));
+    pre.textContent=res.out||"(sem saída no print)";
+    if(res.ok){
+      ver.className="veredito ok";
+      ver.innerHTML="✅ <b>Correto!</b> Todos os testes passaram. Exercício marcado como concluído.";
+      if(!estado["ex_"+ex.id]){estado["ex_"+ex.id]=true;salvar();atualizarUI();}
+      const est=card.querySelector(".est");
+      est.textContent="✔ concluído";est.classList.add("ok");
+    }else{
+      ver.className="veredito err";
+      ver.innerHTML="❌ <b>Ainda não.</b><br><span style='font-family:var(--mono);font-size:12px'>"+escapeHtml(res.err)+"</span>"+
+        "<div class='ajuste'>💡 <b>Ajuste sugerido:</b> "+ex.dica+"</div>";
+    }
+  }catch(e){
+    ver.className="veredito err";
+    ver.innerHTML="⚠ Não foi possível carregar o ambiente Python (requer internet no primeiro uso, ~10&nbsp;MB via CDN). Verifique a conexão e tente de novo.";
+  }
+  btn.disabled=false;btn.textContent="▶ Executar e verificar";
+}
+function escapeHtml(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+
+/* ================= NAVEGAÇÃO / VIEWS ================= */
+const content=document.getElementById("content");
+const crumb=document.getElementById("crumb");
+let viewAtual={tipo:"dash"};
+
+function irPara(v){
+  viewAtual=v;
+  if(v.tipo==="dash")renderDash();
+  else if(v.tipo==="mod")renderModulo(v.n);
+  else if(v.tipo==="viewer")renderViewer(v);
+  document.body.classList.remove("side-open");
+  window.scrollTo({top:0});
+  marcarNav();
+  atualizarUI();
+}
+function montarNav(){
+  const nav=document.getElementById("nav");
+  nav.innerHTML=FASES.map(f=>{
+    const mods=MODULOS.filter(m=>m.fase===f.id);
+    return `<div class="nav-fase" style="--c:${f.cor}"><i></i>${f.tag} · ${f.nome}</div>`+
+      mods.map(m=>`<button class="nav-mod" data-mod="${m.n}">
+        <span class="nn">${String(m.n).padStart(2,"0")}</span>
+        <span class="nt">${m.titulo}</span>
+        <span class="np" data-navpct="${m.n}">0%</span></button>`).join("");
+  }).join("");
+  nav.addEventListener("click",e=>{
+    const b=e.target.closest("[data-mod]");
+    if(b)irPara({tipo:"mod",n:Number(b.getAttribute("data-mod"))});
+  });
+  document.querySelector(".nav-dash").addEventListener("click",()=>irPara({tipo:"dash"}));
+}
+function marcarNav(){
+  document.querySelectorAll(".nav-mod").forEach(b=>{
+    b.classList.toggle("active",viewAtual.tipo==="mod"&&Number(b.getAttribute("data-mod"))===viewAtual.n);
+  });
+}
+function atualizarUI(){
+  MODULOS.forEach(m=>{
+    const p=Math.round(100*progressoModulo(m));
+    const el=document.querySelector(`[data-navpct="${m.n}"]`);
+    if(el){el.textContent=p+"%";el.closest(".nav-mod").classList.toggle("done",p===100);}
+  });
+  if(viewAtual.tipo==="dash")preencherDash();
+  setSaveMsg();
+}
+
+/* ---------- dashboard ---------- */
+function renderDash(){
+  crumb.textContent="Painel de progresso";
+  content.innerHTML=`
+    <h1>De Analista a Cientista de Dados <span style="color:var(--f1)">Especialista</span></h1>
+    <p class="sub">6 fases · 18 módulos · ${TOTAL_H}h · ${EXERCICIOS.length} testes práticos com correção automática. Navegue pelos módulos na barra lateral; vídeos, artigos e testes rodam aqui na área central.</p>
+    <div class="aviso"><b>Dica:</b> os testes práticos em Python baixam o ambiente (~10 MB) na primeira execução e depois ficam em cache. Se um player do YouTube não iniciar, use o link de fallback abaixo dele.</div>
+    <div class="grid2">
+      <div class="panel">
+        <h2>Curva de treinamento — progresso(você)</h2>
+        <svg id="curve" viewBox="0 0 640 250" role="img" aria-label="Curva de progresso"></svg>
+        <div class="curve-note">tracejado = plano · sólido = concluído · ▲ empregável (fim da Fase 3) · ■ núcleo completo (fim da Fase 5)</div>
+      </div>
+      <div class="panel">
+        <h2>Métricas</h2>
+        <div class="stats">
+          <div class="stat"><b id="stPct">0%</b><span>progresso geral</span></div>
+          <div class="stat"><b id="stHoras">—</b><span>horas concluídas</span></div>
+          <div class="stat"><b id="stEx">—</b><span>testes práticos</span></div>
+          <div class="stat"><b id="stCert">—</b><span>certificados</span></div>
+        </div>
+        <div class="ritmo">
+          <label for="ritmo">Meu ritmo:</label>
+          <select id="ritmo">
+            <option value="20">Acelerado — 20 h/semana</option>
+            <option value="16">Intensivo — 16 h/semana</option>
+            <option value="9" selected>Sustentável — 9 h/semana</option>
+          </select>
+        </div>
+        <div class="eta" id="eta"></div>
+        <div class="milestones" id="milestones"></div>
+      </div>
+    </div>`;
+  document.getElementById("ritmo").addEventListener("change",preencherDash);
+  preencherDash();
+}
+function preencherDash(){
+  if(viewAtual.tipo!=="dash")return;
+  const horas=horasFeitas();
+  let certs=0;MODULOS.forEach(m=>m.itens.forEach(it=>{if(it.cert&&estado[it.id])certs++;}));
+  const exDone=EXERCICIOS.filter(e=>estado["ex_"+e.id]).length;
+  document.getElementById("stPct").textContent=Math.round(100*horas/TOTAL_H)+"%";
+  document.getElementById("stHoras").textContent=Math.round(horas)+"h / "+TOTAL_H+"h";
+  document.getElementById("stEx").textContent=exDone+" / "+EXERCICIOS.length;
+  document.getElementById("stCert").textContent=certs+" / "+TOTAL_CERT;
+  const ritmo=Number(document.getElementById("ritmo").value);
+  const rTot=Math.max(0,TOTAL_H-horas);
+  const rEmp=Math.max(0,H_EMPREGAVEL-Math.min(horas,H_EMPREGAVEL));
+  const rNuc=Math.max(0,H_NUCLEO-Math.min(horas,H_NUCLEO));
+  const sem=h=>Math.ceil(h/ritmo);
+  document.getElementById("eta").innerHTML=rTot===0?"<b>Trilha completa — nível especialista.</b>":`trilha completa: faltam <b>${Math.round(rTot)}h</b> ≈ <b>${sem(rTot)} semanas</b>`;
+  document.getElementById("milestones").innerHTML=
+    `▲ <b>Empregável</b> (fim da Fase 3, ${H_EMPREGAVEL}h): ${rEmp===0?"<b>atingido — aplique para vagas!</b>":`≈ ${sem(rEmp)} semanas`}<br>`+
+    `■ <b>Núcleo completo</b> (fim da Fase 5, ${H_NUCLEO}h): ${rNuc===0?"<b>atingido</b>":`≈ ${sem(rNuc)} semanas`}`;
+  desenharCurva();
+}
+function desenharCurva(){
+  const svg=document.getElementById("curve");if(!svg)return;
+  const W=640,H=250,mL=44,mR=14,mT=14,mB=32,iw=W-mL-mR,ih=H-mT-mB;
+  let acP=0,acR=0;const plano=[{x:0,y:0}],real=[{x:0,y:0}];
+  MODULOS.forEach((m,i)=>{acP+=m.h;acR+=m.h*progressoModulo(m);plano.push({x:i+1,y:acP/TOTAL_H});real.push({x:i+1,y:acR/TOTAL_H});});
+  const X=v=>mL+iw*v/MODULOS.length,Y=v=>mT+ih*(1-v);
+  const path=p=>p.map((q,i)=>(i?"L":"M")+X(q.x).toFixed(1)+","+Y(q.y).toFixed(1)).join(" ");
+  let g="";
+  for(let t=0;t<=4;t++){const y=Y(t/4);
+    g+=`<line x1="${mL}" y1="${y}" x2="${W-mR}" y2="${y}" stroke="var(--chart-grid)"/>`;
+    g+=`<text x="${mL-8}" y="${y+4}" text-anchor="end" font-family="IBM Plex Mono" font-size="10" fill="var(--ink-soft)">${t*25}%</text>`;}
+  for(let m=1;m<=MODULOS.length;m++)g+=`<text x="${X(m)}" y="${H-12}" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="var(--ink-soft)">${m}</text>`;
+  g+=`<text x="${(mL+W-mR)/2}" y="${H-1}" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="var(--ink-soft)">módulo (época)</text>`;
+  const xE=X(9),xN=X(13);
+  g+=`<line x1="${xE}" y1="${mT}" x2="${xE}" y2="${H-mB}" stroke="var(--f3)" stroke-dasharray="3 4" opacity=".7"/><text x="${xE}" y="${mT+2}" text-anchor="middle" font-size="10" fill="var(--f3)">▲</text>`;
+  g+=`<line x1="${xN}" y1="${mT}" x2="${xN}" y2="${H-mB}" stroke="var(--f5)" stroke-dasharray="3 4" opacity=".7"/><text x="${xN}" y="${mT+2}" text-anchor="middle" font-size="10" fill="var(--f5)">■</text>`;
+  g+=`<path d="${path(plano)}" fill="none" stroke="var(--ink-soft)" stroke-width="1.5" stroke-dasharray="5 5" opacity=".55"/>`;
+  g+=`<path d="${path(real)}" fill="none" stroke="var(--f1)" stroke-width="2.5" stroke-linejoin="round"/>`;
+  real.forEach((p,i)=>{if(i===0)return;const full=progressoModulo(MODULOS[i-1])===1;
+    g+=`<circle cx="${X(p.x)}" cy="${Y(p.y)}" r="${full?4.5:3}" fill="${full?"var(--ok)":"#fff"}" stroke="var(--f1)" stroke-width="1.8"/>`;});
+  svg.innerHTML=g;
+}
+
+/* ---------- módulo ---------- */
+function renderModulo(n){
+  const m=MODULOS.find(x=>x.n===n);
+  const f=FASES.find(x=>x.id===m.fase);
+  const exs=exDoMod(n);
+  crumb.textContent=`${f.tag} · Módulo ${String(n).padStart(2,"0")} — ${m.titulo}`;
+  content.innerHTML=`
+    <div class="mod-hero" style="--c:${f.cor}">
+      <span class="tag">${f.tag} · ${f.nome}</span>
+      <h1>${String(n).padStart(2,"0")} — ${m.titulo}</h1>
+      <div class="meta">${m.h}h estimadas · ${m.itens.length} conteúdos · ${exs.length} teste(s) prático(s)</div>
+      <p class="sub" style="margin-top:8px">${m.topicos}</p>
+    </div>
+    <div class="panel">
+      <h2>Conteúdo do módulo</h2>
+      ${m.itens.map(it=>{
+        const feito=!!estado[it.id];
+        const tipoLabel={curso:"curso",video:"vídeo",cert:"certificado",pratica:"prática",entrega:"entregável",livro:"livro"}[it.t];
+        const player=it.embed?`
+          <div class="player"><div class="frame" data-embed="${it.embed}">
+            <div class="ph" tabindex="0" role="button" aria-label="Reproduzir ${it.n}"><div class="playbtn"></div><span>Assistir no portal</span></div>
+          </div>
+          <div class="fb">Se o player não iniciar, <a href="https://www.youtube.com/playlist?list=${it.embed}" target="_blank" rel="noopener">abra no YouTube</a>.</div></div>`:"";
+        const acts=(it.u&&!it.embed)?`<div class="acts">
+            <button type="button" data-view="${it.u}" data-nome="${it.n.replace(/"/g,"&quot;")}">▣ Abrir aqui no portal</button>
+            <a href="${it.u}" target="_blank" rel="noopener">Nova aba ↗</a></div>`:"";
+        return `<div class="item ${feito?"feito":""}">
+          <span class="tipo ${it.t}">${tipoLabel}</span>
+          <div class="txt"><div class="nome">${it.n}</div><div class="desc">${it.d||""}</div>${player}${acts}</div>
+          <label class="chk"><input type="checkbox" data-chk="${it.id}" ${feito?"checked":""} aria-label="Concluir ${it.n}">concluído</label>
+        </div>`;
+      }).join("")}
+    </div>
+    ${exs.length?`<h3 class="secT">🧪 Testes práticos — compilador interno (Python no navegador)</h3>`+
+      exs.map(ex=>{
+        const feito=!!estado["ex_"+ex.id];
+        return `<div class="ex" data-ex="${ex.id}">
+          <div class="ex-head" tabindex="0" role="button" aria-expanded="false">
+            <span class="badge">teste</span><span class="et">${ex.titulo}</span>
+            <span class="est ${feito?"ok":""}">${feito?"✔ concluído":"pendente"}</span>
+          </div>
+          <div class="ex-body">
+            <p class="enun">${ex.enun}</p>
+            <div class="esperado"><b>Resultado esperado</b><pre>${ex.esperado}</pre></div>
+            <textarea class="editor" spellcheck="false" aria-label="Editor de código Python">${ex.starter}</textarea>
+            <div class="ex-actions">
+              <button class="btn-run" data-run="${ex.id}">▶ Executar e verificar</button>
+              <button class="btn-ghost" data-reset="${ex.id}">↺ Restaurar código</button>
+            </div>
+            <div class="saida"><div class="s-h">Saída do programa (print)</div><pre></pre><div class="veredito"></div></div>
+            <details class="gab"><summary>Ver gabarito (tente sozinho primeiro!)</summary><pre>${escapeHtml(ex.gab)}</pre></details>
+          </div>
+        </div>`;
+      }).join(""):""}
+    <div class="navmod-foot">
+      <button ${n===1?"disabled":""} data-goto="${n-1}">← Módulo anterior</button>
+      <button ${n===MODULOS.length?"disabled":""} data-goto="${n+1}">Próximo módulo →</button>
+    </div>`;
+
+  content.querySelectorAll("[data-goto]").forEach(b=>b.addEventListener("click",()=>irPara({tipo:"mod",n:Number(b.getAttribute("data-goto"))})));
+  content.querySelectorAll(".ex-head").forEach(h=>{
+    const t=()=>{const c=h.closest(".ex");c.classList.toggle("open");h.setAttribute("aria-expanded",c.classList.contains("open"));};
+    h.addEventListener("click",t);
+    h.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();t();}});
+  });
+  content.querySelectorAll(".editor").forEach(ed=>{
+    ed.addEventListener("keydown",e=>{
+      if(e.key==="Tab"){e.preventDefault();
+        const s=ed.selectionStart;ed.setRangeText("    ",s,ed.selectionEnd,"end");}
+    });
+  });
+}
+
+/* ---------- viewer central ---------- */
+function renderViewer(v){
+  crumb.textContent="Visualizando: "+v.nome;
+  content.innerHTML=`
+    <div class="viewer-bar">
+      <button id="vBack">← Voltar ao módulo</button>
+      <a href="${v.url}" target="_blank" rel="noopener">Abrir em nova aba ↗</a>
+      <span style="font-family:var(--mono);font-size:12px;color:var(--ink-soft);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:50%">${v.url}</span>
+    </div>
+    <iframe class="viewer-frame" src="${v.url}" referrerpolicy="strict-origin-when-cross-origin" title="${v.nome}"></iframe>
+    <div class="viewer-note">Se a janela ficar em branco, este site bloqueia a exibição dentro de outros portais (proteção do próprio site, comum em plataformas com login como Kaggle e freeCodeCamp). Nesse caso use "Abrir em nova aba" — e volte aqui para marcar como concluído.</div>`;
+  document.getElementById("vBack").addEventListener("click",()=>irPara({tipo:"mod",n:v.deMod}));
+}
+
+/* ---------- eventos globais ---------- */
+content.addEventListener("change",e=>{
+  const id=e.target.getAttribute&&e.target.getAttribute("data-chk");
+  if(!id)return;
+  if(e.target.checked)estado[id]=true;else delete estado[id];
+  e.target.closest(".item").classList.toggle("feito",e.target.checked);
+  atualizarUI();salvar();
+});
+content.addEventListener("click",e=>{
+  const v=e.target.closest("[data-view]");
+  if(v){irPara({tipo:"viewer",url:v.getAttribute("data-view"),nome:v.getAttribute("data-nome"),deMod:viewAtual.n});return;}
+  const ph=e.target.closest(".ph");
+  if(ph){const fr=ph.parentElement;
+    fr.innerHTML=`<iframe src="https://www.youtube-nocookie.com/embed/videoseries?list=${fr.getAttribute("data-embed")}&autoplay=1" title="Player do YouTube" allow="accelerometer; autoplay; encrypted-media; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`;return;}
+  const run=e.target.closest("[data-run]");
+  if(run){const ex=EXERCICIOS.find(x=>x.id===run.getAttribute("data-run"));executarExercicio(ex,run);return;}
+  const rst=e.target.closest("[data-reset]");
+  if(rst){const ex=EXERCICIOS.find(x=>x.id===rst.getAttribute("data-reset"));
+    rst.closest(".ex-body").querySelector(".editor").value=ex.starter;}
+});
+content.addEventListener("keydown",e=>{
+  const ph=e.target.closest&&e.target.closest(".ph");
+  if(ph&&(e.key==="Enter"||e.key===" ")){e.preventDefault();ph.click();}
+});
+document.getElementById("burger").addEventListener("click",()=>document.body.classList.toggle("side-open"));
+
+/* ---------- boot ---------- */
+(async function(){
+  montarNav();
+  await carregar();
+  irPara({tipo:"dash"});
+})();
+</script>
+</body>
+</html>
