@@ -13,7 +13,7 @@
   --f1b:#63B3E8; --f2b:#6FD36F; --f3b:#FFB066; --f4b:#F27B7B; --f5b:#C3A2E8; --f6b:#C99B8F;
   --ok:#2CA02C; --err:#C62828; --chart-grid:#E3EAF3; --side:#0C1728; --side2:#12263F; --side-ink:#C7D4E4;
   --display:'Space Grotesk',sans-serif; --body:'IBM Plex Sans',sans-serif; --mono:'IBM Plex Mono',monospace;
-  --sw:292px; --swr:78px; --sh1:#0F1B2D; --sh2:#1B4A7A;
+  --sw:296px; --swr:86px; --sh1:#0F1B2D; --sh2:#1B4A7A;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
@@ -24,13 +24,10 @@ button{font-family:inherit}
 
 /* ================= layout ================= */
 #app{display:flex;min-height:100vh}
-aside{width:var(--sw);background:linear-gradient(180deg,var(--side),#0E2036);color:var(--side-ink);position:fixed;top:0;bottom:0;left:0;overflow-y:auto;overflow-x:hidden;padding:16px 12px 30px;z-index:40;transition:width .22s,transform .25s;scrollbar-width:thin}
+aside{width:var(--sw);background:linear-gradient(180deg,var(--side),#0E2036);color:var(--side-ink);position:fixed;top:0;bottom:0;left:0;overflow-y:auto;overflow-x:hidden;padding:14px 12px 30px;z-index:40;transition:width .22s,transform .25s;scrollbar-width:thin}
 .main{flex:1;margin-left:var(--sw);min-width:0;transition:margin-left .22s}
 body.rail aside{width:var(--swr)}
 body.rail .main{margin-left:var(--swr)}
-body.rail .btxt,body.rail .brand-sub,body.rail .nt,body.rail .np,body.rail .ftxt,body.rail .nav-dash span{display:none}
-body.rail .nav-mod,body.rail .nav-dash{justify-content:center}
-body.rail .nav-fase{justify-content:center;padding:0}
 .topbar{position:sticky;top:0;z-index:30;background:rgba(238,243,249,.9);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;padding:10px 24px}
 #burger{display:none;background:#fff;border:1px solid var(--line);border-radius:9px;width:38px;height:34px;cursor:pointer;color:var(--ink)}
 .crumb{font-family:var(--mono);font-size:12px;color:var(--ink-soft);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -46,30 +43,48 @@ body.rail .nav-fase{justify-content:center;padding:0}
 }
 
 /* ================= sidebar ================= */
-.brand-row{display:flex;align-items:center;gap:10px;padding:4px 6px 2px}
-.logo{width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,#1F77B4,#7A4DBE);display:flex;align-items:center;justify-content:center;color:#fff;flex:none}
-.btxt{font-family:var(--display);font-weight:700;font-size:17px;color:#fff}
-.btxt i{color:#6FB3E0;font-style:normal}
-#sideToggle{margin-left:auto;background:none;border:1px solid #24466E;color:#7E93AC;border-radius:8px;width:30px;height:30px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex:none}
+.side-head{display:flex;align-items:center;gap:10px;padding:4px 4px 2px}
+.avatar{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#1F77B4,#7A4DBE);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:700;font-size:15px;flex:none}
+.side-tt{flex:1;min-width:0}
+.side-tt b{display:block;color:#fff;font-family:var(--display);font-size:15.5px;line-height:1.2}
+.side-tt span{font-family:var(--mono);font-size:9.5px;letter-spacing:.07em;text-transform:uppercase;color:#7E93AC;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+#sideToggle{background:none;border:1px solid #24466E;color:#7E93AC;border-radius:9px;width:30px;height:30px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex:none}
 #sideToggle:hover{color:#fff;border-color:#3D6EA5}
-.brand-sub{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#7E93AC;padding:2px 8px 12px}
-.nav-dash{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:var(--side2);border:1px solid #24466E;color:#fff;border-radius:10px;padding:10px 12px;font-size:13.5px;cursor:pointer;margin-bottom:12px}
-.nav-dash:hover{background:#1B3A5F}
-.nav-fase{display:flex;align-items:center;gap:8px;width:100%;background:none;border:none;color:#8AA1BC;font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;margin:12px 0 4px;padding:4px 8px;cursor:pointer;border-radius:8px}
-.nav-fase:hover{color:#D6E4F5}
-.nav-fase i.dot{width:9px;height:9px;border-radius:3px;background:var(--c);flex:none}
-.nav-fase .ftxt{flex:1;text-align:left}
-.nav-fase .chev{transition:transform .2s;display:flex}
-.fgroup.closed{display:none}
-.nav-fase.closed .chev{transform:rotate(-90deg)}
-.nav-mod{display:flex;align-items:center;gap:9px;width:100%;text-align:left;background:none;border:none;color:var(--side-ink);border-radius:9px;padding:8px 8px;font-size:13px;cursor:pointer;line-height:1.3}
+.nitem{display:flex;align-items:center;gap:10px;width:100%;background:none;border:none;color:var(--side-ink);border-radius:11px;padding:8px 9px;font-size:13.5px;cursor:pointer;margin-top:5px;text-align:left}
+.nitem:hover{background:var(--side2)}
+.nitem.active{background:#1F4260;color:#fff}
+.nitem .nic{width:30px;height:30px;border-radius:9px;background:#152C49;display:flex;align-items:center;justify-content:center;flex:none;color:#9FC3E8}
+.nitem.active .nic{background:#2A578A;color:#fff}
+.side-sec{font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:#5F7793;margin:16px 8px 7px}
+.fcard{background:#0F2038;border:1px solid #1B3A5F;border-radius:13px;margin-bottom:8px;overflow:hidden}
+.fhead{display:flex;align-items:center;gap:9px;width:100%;background:none;border:none;padding:9px 10px;cursor:pointer;color:#D6E4F5;text-align:left}
+.fhead:hover{background:#132A47}
+.fhead .fic{width:30px;height:30px;border-radius:9px;background:var(--c);display:flex;align-items:center;justify-content:center;color:#fff;flex:none}
+.fhead .ftt{flex:1;min-width:0}
+.fhead .ftt b{display:block;font-size:12.5px;font-weight:600;line-height:1.25}
+.fhead .ftt span{font-family:var(--mono);font-size:9.5px;color:#7E93AC}
+.fhead .fpc{font-family:var(--mono);font-size:10.5px;color:#8FB8DB;flex:none}
+.fhead .chev{color:#5F7793;display:flex;transition:transform .2s;flex:none}
+.fcard.open .fhead .chev{transform:rotate(180deg)}
+.fmods{display:none;padding:2px 7px 8px}
+.fcard.open .fmods{display:block}
+.nav-mod{display:flex;align-items:center;gap:8px;width:100%;text-align:left;background:none;border:none;color:var(--side-ink);border-radius:9px;padding:7px 7px;font-size:12.5px;cursor:pointer;line-height:1.3}
 .nav-mod:hover{background:var(--side2)}
 .nav-mod.active{background:#1F4260;color:#fff;box-shadow:inset 3px 0 0 var(--c,#6FB3E0)}
-.nav-mod .nn{font-family:var(--mono);font-size:10.5px;color:#7E93AC;min-width:20px;text-align:center;background:#152C49;border-radius:6px;padding:2px 0;flex:none}
+.nav-mod .nn{font-family:var(--mono);font-size:10px;color:#7E93AC;min-width:22px;text-align:center;background:#152C49;border-radius:6px;padding:2px 0;flex:none}
 .nav-mod .nt{flex:1}
-.nav-mod .np{font-family:var(--mono);font-size:10.5px;color:#8FB8DB;min-width:34px;text-align:right}
+.nav-mod .np{font-family:var(--mono);font-size:10px;color:#8FB8DB;flex:none}
 .nav-mod.done .np{color:#7FD48A}
 .nav-mod.done .nn{background:#14402A;color:#7FD48A}
+/* rail (menu recolhido) */
+body.rail .side-tt,body.rail .nitem span.lbl,body.rail .side-sec,body.rail .fhead .ftt,body.rail .fhead .fpc,body.rail .fhead .chev{display:none}
+body.rail .fmods{display:none!important}
+body.rail .side-head{justify-content:center}
+body.rail #sideToggle{position:static}
+body.rail .avatar{display:none}
+body.rail .nitem{justify-content:center;padding:8px 0}
+body.rail .fcard{background:none;border:none;margin-bottom:2px}
+body.rail .fhead{justify-content:center;padding:7px 0}
 
 /* ================= hero ================= */
 .hero{background:linear-gradient(120deg,var(--sh1) 0%,var(--sh2) 100%);border-radius:20px;padding:26px clamp(18px,2.6vw,34px);color:#fff;display:grid;grid-template-columns:1.1fr 1fr;gap:26px;align-items:center;box-shadow:0 14px 34px -18px rgba(15,42,73,.55)}
@@ -80,7 +95,7 @@ body.rail .nav-fase{justify-content:center;padding:0}
 .hero .sub{color:#C4D6EA;font-size:14px;max-width:560px}
 .hstats{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
 @media(max-width:520px){.hstats{grid-template-columns:1fr}}
-.hstat{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:14px;padding:12px 16px;backdrop-filter:blur(3px)}
+.hstat{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:14px;padding:12px 16px}
 .hstat .hs-top{display:flex;align-items:center;gap:8px;color:#A8C4E0;font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase}
 .hstat b{font-family:var(--display);font-size:24px;display:block;margin:4px 0 6px;color:#fff}
 .hbar{height:6px;border-radius:99px;background:rgba(255,255,255,.15);overflow:hidden}
@@ -131,7 +146,7 @@ body.rail .nav-fase{justify-content:center;padding:0}
 .item:last-child{border-bottom:none}
 .tipo{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#fff;background:var(--ink-soft);border-radius:6px;padding:3px 8px;margin-top:2px;white-space:nowrap}
 .tipo.curso{background:var(--f1)} .tipo.video{background:#B8860B} .tipo.cert{background:var(--f5)}
-.tipo.pratica{background:var(--f3)} .tipo.entrega{background:var(--f4)} .tipo.livro{background:#0E7C7B}
+.tipo.pratica{background:var(--f3)} .tipo.entrega{background:var(--f4)} .tipo.livro{background:#0E7C7B} .tipo.artigo{background:#3B7DD8}
 .item .txt{flex:1}
 .item .nome{font-weight:500}
 .item .desc{font-size:12.5px;color:var(--ink-soft)}
@@ -140,6 +155,8 @@ body.rail .nav-fase{justify-content:center;padding:0}
 .acts button:hover,.acts a:hover{background:var(--f1);color:#fff}
 .acts a.yt{border-color:#C4302B;color:#C4302B}
 .acts a.yt:hover{background:#C4302B;color:#fff}
+.acts button.del{border-color:#C0524D;color:#C0524D}
+.acts button.del:hover{background:#C0524D;color:#fff}
 .chk{display:flex;align-items:center;gap:7px;cursor:pointer;font-family:var(--mono);font-size:11px;color:var(--ink-soft);white-space:nowrap;margin-top:2px}
 .chk input{width:18px;height:18px;accent-color:var(--ok);cursor:pointer}
 .item.feito .txt{opacity:.55}
@@ -156,6 +173,21 @@ body.rail .nav-fase{justify-content:center;padding:0}
 .navmod-foot button{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:#fff;border-radius:11px;padding:9px 16px;font-size:13px;cursor:pointer;color:var(--ink);box-shadow:0 4px 14px -10px rgba(16,35,59,.4)}
 .navmod-foot button:hover{border-color:var(--f1);color:var(--f1)}
 .navmod-foot button:disabled{opacity:.4;cursor:default}
+
+/* ================= minha área / formulário ================= */
+.addform{display:grid;grid-template-columns:150px 130px 1fr 1fr auto;gap:10px;align-items:end}
+@media(max-width:960px){.addform{grid-template-columns:1fr 1fr}}
+.field label{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:4px}
+.field input,.field select{width:100%;font-size:13px;padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--ink)}
+.field input:focus,.field select:focus{outline:2px solid var(--f1)}
+.btn-add{display:inline-flex;align-items:center;gap:7px;background:var(--f1);color:#fff;border:none;border-radius:10px;padding:9px 16px;font-family:var(--mono);font-size:12.5px;cursor:pointer;box-shadow:0 6px 16px -8px rgba(31,119,180,.6);white-space:nowrap}
+.btn-add:hover{filter:brightness(1.08)}
+.form-msg{font-size:12.5px;margin-top:8px}
+.form-msg.ok{color:var(--ok)} .form-msg.err{color:var(--err)}
+.extra-flag{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;color:#8A6D00;background:#FFF3C9;border:1px solid #F0DE9A;border-radius:6px;padding:2px 7px;margin-left:8px}
+.empty{font-size:13px;color:var(--ink-soft);padding:10px 0}
+.area-mod-title{font-family:var(--display);font-size:15px;margin:16px 0 6px;display:flex;align-items:center;gap:8px}
+.area-mod-title .dot{width:9px;height:9px;border-radius:3px;background:var(--c)}
 
 /* ================= exercícios ================= */
 .ex{border:1px solid var(--line);border-radius:14px;margin-bottom:14px;overflow:hidden;background:var(--card);box-shadow:0 6px 20px -14px rgba(16,35,59,.25)}
@@ -207,18 +239,19 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 <body>
 <div id="app">
 <aside id="sidebar">
-  <div class="brand-row">
-    <span class="logo" id="logo"></span>
-    <span class="btxt">Trilha<i>DS</i></span>
+  <div class="side-head">
+    <span class="avatar">TD</span>
+    <div class="side-tt"><b>TrilhaDS</b><span>analista → especialista</span></div>
     <button id="sideToggle" title="Recolher/expandir menu" aria-label="Recolher menu"></button>
   </div>
-  <div class="brand-sub">analista → cientista especialista</div>
-  <button class="nav-dash" id="navDash"></button>
+  <button class="nitem" id="navDash"></button>
+  <button class="nitem" id="navArea"></button>
+  <div class="side-sec">Fases da trilha</div>
   <nav id="nav"></nav>
 </aside>
 <div class="main">
   <div class="topbar">
-    <button id="burger" aria-label="Abrir menu"></button>
+    <button id="burger" aria-label="Abrir menu">☰</button>
     <span class="crumb" id="crumb">Painel</span>
     <span id="pyStatus"></span>
     <span id="saveState">carregando…</span>
@@ -228,7 +261,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 </div>
 
 <script>
-/* ================= ÍCONES (SVG inline) ================= */
+/* ================= ÍCONES ================= */
 const P={
  chart:'<path d="M3 3v18h18"/><path d="M7 15v2M12 10v7M17 6v11"/>',
  chevD:'<path d="M6 9l6 6 6-6"/>',
@@ -257,6 +290,9 @@ const P={
  close:'<path d="M6 6l12 12M18 6L6 18"/>',
  zap:'<path d="M13 2L4 14h6l-1 8 9-12h-6z"/>',
  flag:'<path d="M5 21V4"/><path d="M5 4h12l-2 4 2 4H5"/>',
+ star:'<path d="M12 3l2.7 5.6 6.3.9-4.5 4.4 1 6.1-5.5-3-5.5 3 1-6.1L3 9.5l6.3-.9z"/>',
+ plus:'<path d="M12 5v14M5 12h14"/>',
+ trash:'<path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="M6 7l1 13h10l1-13"/>',
 };
 function ic(n,s=16,fill=false){return `<svg class="ic" width="${s}" height="${s}" viewBox="0 0 24 24" fill="${fill?"currentColor":"none"}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[n]}</svg>`;}
 
@@ -544,36 +580,52 @@ const H_EMPREGAVEL=MODULOS.filter(m=>m.n<=9).reduce((s,m)=>s+m.h,0);
 const H_NUCLEO=MODULOS.filter(m=>m.n<=13).reduce((s,m)=>s+m.h,0);
 const exDoMod=n=>EXERCICIOS.filter(e=>e.mod===n);
 const isYT=u=>!!u&&(u.includes("youtube.com")||u.includes("youtu.be"));
+function ytParse(u){
+  try{
+    const url=new URL(u);
+    if(url.hostname.includes("youtu.be"))return{v:url.pathname.slice(1).split("/")[0]};
+    const list=url.searchParams.get("list");
+    const v=url.searchParams.get("v");
+    if(v)return{v};
+    if(list)return{list};
+    if(url.pathname.startsWith("/shorts/"))return{v:url.pathname.split("/")[2]};
+    if(url.pathname.startsWith("/embed/"))return{v:url.pathname.split("/")[2]};
+  }catch(e){}
+  return null;
+}
 
-/* ================= ESTADO ================= */
+/* ================= ESTADO + EXTRAS ================= */
 const KEY="trilha_ds_progresso_v2";
-let estado={},storageOk=false;
+const KEYX="trilha_ds_extras_v1";
+let estado={},extras=[],storageOk=false;
 function temStorage(){return typeof window.storage!=="undefined"&&window.storage;}
+async function lerChave(k){
+  if(temStorage()){try{const r=await window.storage.get(k);return r&&r.value?r.value:null;}catch(e){}}
+  try{return localStorage.getItem(k);}catch(e){return null;}
+}
+async function gravarChave(k,v){
+  let ok=false;
+  if(temStorage()){try{await window.storage.set(k,v);ok=true;}catch(e){}}
+  try{localStorage.setItem(k,v);ok=true;}catch(e){}
+  return ok;
+}
 async function carregar(){
   try{
-    if(!temStorage()) throw new Error("sem storage");
-    const r=await window.storage.get(KEY);
-    estado=r&&r.value?JSON.parse(r.value):{};storageOk=true;
-  }catch(e){
-    try{const v=localStorage.getItem(KEY);estado=v?JSON.parse(v):{};storageOk=true;}
-    catch(e2){estado={};storageOk=false;}
-  }
+    const e=await lerChave(KEY);estado=e?JSON.parse(e):{};
+    const x=await lerChave(KEYX);extras=x?JSON.parse(x):[];
+    storageOk=true;
+  }catch(err){estado={};extras=[];storageOk=false;}
   setSaveMsg();
 }
 let saveTimer=null;
 function salvar(){
   clearTimeout(saveTimer);
   saveTimer=setTimeout(async()=>{
-    try{
-      if(temStorage()){await window.storage.set(KEY,JSON.stringify(estado));}
-      else{localStorage.setItem(KEY,JSON.stringify(estado));}
-      storageOk=true;
-    }catch(e){
-      try{localStorage.setItem(KEY,JSON.stringify(estado));storageOk=true;}
-      catch(e2){storageOk=false;}
-    }
+    const ok1=await gravarChave(KEY,JSON.stringify(estado));
+    const ok2=await gravarChave(KEYX,JSON.stringify(extras));
+    storageOk=ok1&&ok2;
     setSaveMsg();
-  },400);
+  },350);
 }
 function setSaveMsg(){
   const el=document.getElementById("saveState");
@@ -581,12 +633,26 @@ function setSaveMsg(){
   if(storageOk){el.className="ok";el.textContent="progresso salvo";}
   else{el.className="warn";el.textContent="progresso só nesta sessão";}
 }
+const extrasDoMod=n=>extras.filter(x=>x.mod===n);
+function addExtra(mod,t,nome,url){
+  const id="x"+Date.now().toString(36)+Math.floor(Math.random()*99);
+  extras.push({id,mod,t,n:nome,u:url});
+  salvar();
+  return id;
+}
+function delExtra(id){
+  extras=extras.filter(x=>x.id!==id);
+  delete estado["x_"+id];
+  salvar();
+}
 
 /* ================= PROGRESSO ================= */
 function progressoModulo(m){
-  const exs=exDoMod(m.n);
-  const total=m.itens.length+exs.length;
-  const done=m.itens.filter(it=>estado[it.id]).length+exs.filter(e=>estado["ex_"+e.id]).length;
+  const exs=exDoMod(m.n),xts=extrasDoMod(m.n);
+  const total=m.itens.length+exs.length+xts.length;
+  const done=m.itens.filter(it=>estado[it.id]).length
+    +exs.filter(e=>estado["ex_"+e.id]).length
+    +xts.filter(x=>estado["x_"+x.id]).length;
   return total?done/total:0;
 }
 function horasFeitas(){return MODULOS.reduce((s,m)=>s+m.h*progressoModulo(m),0);}
@@ -672,7 +738,7 @@ async function executarExercicio(ex,btn){
   }
   btn.disabled=false;btn.innerHTML=ic("play",14,true)+" Executar e verificar";
 }
-function escapeHtml(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function escapeHtml(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
 
 /* ================= NAVEGAÇÃO / VIEWS ================= */
 const content=document.getElementById("content");
@@ -683,6 +749,7 @@ function irPara(v){
   viewAtual=v;
   if(v.tipo==="dash")renderDash();
   else if(v.tipo==="mod")renderModulo(v.n);
+  else if(v.tipo==="area")renderArea();
   else if(v.tipo==="viewer")renderViewer(v);
   document.body.classList.remove("side-open");
   window.scrollTo({top:0});
@@ -690,47 +757,76 @@ function irPara(v){
   atualizarUI();
 }
 function montarNav(){
-  document.getElementById("logo").innerHTML=ic("chart",20);
   document.getElementById("sideToggle").innerHTML=ic("rail",15);
   document.getElementById("burger").innerHTML=ic("menu",18);
-  document.getElementById("navDash").innerHTML=ic("chart",17)+"<span>Painel de progresso</span>";
+  document.getElementById("navDash").innerHTML=`<span class="nic">${ic("chart",16)}</span><span class="lbl">Painel de progresso</span>`;
+  document.getElementById("navArea").innerHTML=`<span class="nic">${ic("star",16)}</span><span class="lbl">Minha área</span>`;
   const nav=document.getElementById("nav");
   nav.innerHTML=FASES.map(f=>{
     const mods=MODULOS.filter(m=>m.fase===f.id);
-    return `<button class="nav-fase" data-fgroup="${f.id}" style="--c:${f.cor}" aria-expanded="true">
-        <i class="dot"></i><span class="ftxt">${f.tag} · ${f.nome}</span><span class="chev">${ic("chevD",13)}</span>
+    return `<div class="fcard" id="fc-${f.id}">
+      <button class="fhead" data-fgroup="${f.id}" style="--c:${f.cor}" aria-expanded="false">
+        <span class="fic">${ic(f.icon,15)}</span>
+        <span class="ftt"><b>${f.nome}</b><span>${f.tag} · ${mods.length} módulos</span></span>
+        <span class="fpc" data-fasepct="${f.id}">0%</span>
+        <span class="chev">${ic("chevD",13)}</span>
       </button>
-      <div class="fgroup" id="fg-${f.id}">`+
+      <div class="fmods">`+
       mods.map(m=>`<button class="nav-mod" data-mod="${m.n}" style="--c:${f.cor}" title="${m.titulo}">
         <span class="nn">${String(m.n).padStart(2,"0")}</span>
         <span class="nt">${m.titulo}</span>
         <span class="np" data-navpct="${m.n}">0%</span></button>`).join("")+
-      `</div>`;
+      `</div></div>`;
   }).join("");
   nav.addEventListener("click",e=>{
     const fh=e.target.closest("[data-fgroup]");
     if(fh){
-      const g=document.getElementById("fg-"+fh.getAttribute("data-fgroup"));
-      g.classList.toggle("closed");fh.classList.toggle("closed");
-      fh.setAttribute("aria-expanded",!g.classList.contains("closed"));
+      if(document.body.classList.contains("rail")){
+        document.body.classList.remove("rail");
+        try{localStorage.setItem("trilha_rail","0");}catch(err){}
+        document.getElementById("fc-"+fh.getAttribute("data-fgroup")).classList.add("open");
+      }else{
+        const card=document.getElementById("fc-"+fh.getAttribute("data-fgroup"));
+        card.classList.toggle("open");
+        fh.setAttribute("aria-expanded",card.classList.contains("open"));
+      }
       return;
     }
     const b=e.target.closest("[data-mod]");
     if(b)irPara({tipo:"mod",n:Number(b.getAttribute("data-mod"))});
   });
   document.getElementById("navDash").addEventListener("click",()=>irPara({tipo:"dash"}));
-  document.getElementById("sideToggle").addEventListener("click",()=>document.body.classList.toggle("rail"));
+  document.getElementById("navArea").addEventListener("click",()=>irPara({tipo:"area"}));
+  document.getElementById("sideToggle").addEventListener("click",()=>{
+    document.body.classList.toggle("rail");
+    try{localStorage.setItem("trilha_rail",document.body.classList.contains("rail")?"1":"0");}catch(e){}
+  });
+  try{if(localStorage.getItem("trilha_rail")==="1")document.body.classList.add("rail");}catch(e){}
+  const first=document.getElementById("fc-f1");if(first)first.classList.add("open");
+}
+function abrirFase(fid){
+  const c=document.getElementById("fc-"+fid);
+  if(c&&!document.body.classList.contains("rail"))c.classList.add("open");
 }
 function marcarNav(){
   document.querySelectorAll(".nav-mod").forEach(b=>{
     b.classList.toggle("active",viewAtual.tipo==="mod"&&Number(b.getAttribute("data-mod"))===viewAtual.n);
   });
+  document.getElementById("navDash").classList.toggle("active",viewAtual.tipo==="dash");
+  document.getElementById("navArea").classList.toggle("active",viewAtual.tipo==="area");
 }
 function atualizarUI(){
   MODULOS.forEach(m=>{
     const p=Math.round(100*progressoModulo(m));
     const el=document.querySelector(`[data-navpct="${m.n}"]`);
     if(el){el.textContent=p+"%";el.closest(".nav-mod").classList.toggle("done",p===100);}
+  });
+  FASES.forEach(f=>{
+    const mods=MODULOS.filter(m=>m.fase===f.id);
+    const hF=mods.reduce((s,m)=>s+m.h,0);
+    const hD=mods.reduce((s,m)=>s+m.h*progressoModulo(m),0);
+    const el=document.querySelector(`[data-fasepct="${f.id}"]`);
+    if(el)el.textContent=Math.round(100*hD/hF)+"%";
   });
   if(viewAtual.tipo==="dash")preencherDash();
   setSaveMsg();
@@ -744,7 +840,7 @@ function renderDash(){
       <div>
         <div class="eyebrow">6 fases · 18 módulos · ${TOTAL_H}h · ${EXERCICIOS.length} testes práticos</div>
         <h1>De Analista a Cientista de Dados <em>Especialista</em></h1>
-        <p class="sub">Trilha completa com cursos gratuitos, players integrados e compilador Python com correção automática. Sua jornada tratada como um treinamento de modelo: cada módulo é uma época a mais na curva.</p>
+        <p class="sub">Trilha completa com cursos gratuitos, players integrados, compilador Python com correção automática e a sua curadoria pessoal na Minha Área.</p>
       </div>
       <div class="hstats">
         <div class="hstat"><div class="hs-top">${ic("zap",13)} progresso geral</div><b id="stPct">0%</b><div class="hbar hb1"><i id="bPct"></i></div></div>
@@ -793,7 +889,7 @@ function preencherDash(){
   document.getElementById("stEx").textContent=exDone+" / "+EXERCICIOS.length;
   document.getElementById("stCert").textContent=certs+" / "+TOTAL_CERT;
   document.getElementById("bPct").style.width=pct+"%";
-  document.getElementById("bHoras").style.width=Math.round(100*horas/TOTAL_H)+"%";
+  document.getElementById("bHoras").style.width=pct+"%";
   document.getElementById("bEx").style.width=Math.round(100*exDone/EXERCICIOS.length)+"%";
   document.getElementById("bCert").style.width=Math.round(100*certs/TOTAL_CERT)+"%";
   const ritmo=Number(document.getElementById("ritmo").value);
@@ -845,11 +941,111 @@ function desenharCurva(){
   svg.innerHTML=g;
 }
 
+/* ---------- extras: helpers de render ---------- */
+function playerDeUrl(u,titulo){
+  const yt=ytParse(u);
+  if(!yt)return"";
+  const src=yt.v?("https://www.youtube-nocookie.com/embed/"+yt.v+"?autoplay=1"):("https://www.youtube-nocookie.com/embed/videoseries?list="+yt.list+"&autoplay=1");
+  return `<div class="player"><div class="frame" data-src="${escapeHtml(src)}">
+      <div class="ph" tabindex="0" role="button" aria-label="Reproduzir ${escapeHtml(titulo)}"><div class="playbtn">${ic("play",20,true)}</div><span>Assistir no portal</span></div>
+    </div>
+    <div class="fb">Se o player não iniciar, <a href="${escapeHtml(u)}" target="_blank" rel="noopener">abra no YouTube</a>.</div></div>`;
+}
+function renderExtraItem(x,comModulo){
+  const feito=!!estado["x_"+x.id];
+  const tipoIc={video:"video",artigo:"panel",livro:"book"}[x.t]||"panel";
+  const tipoLabel={video:"vídeo",artigo:"artigo",livro:"livro"}[x.t]||x.t;
+  const player=(x.t==="video"&&isYT(x.u))?playerDeUrl(x.u,x.n):"";
+  let acts="";
+  if(x.u&&!player){
+    if(isYT(x.u)){
+      acts=`<a class="yt" href="${escapeHtml(x.u)}" target="_blank" rel="noopener">${ic("video",13)} Abrir no YouTube</a>`;
+    }else{
+      acts=`<button type="button" data-view="${escapeHtml(x.u)}" data-nome="${escapeHtml(x.n)}">${ic("panel",13)} Abrir aqui no portal</button>
+            <a href="${escapeHtml(x.u)}" target="_blank" rel="noopener">${ic("ext",13)} Nova aba</a>`;
+    }
+  }else if(x.u&&player){
+    acts=`<a href="${escapeHtml(x.u)}" target="_blank" rel="noopener">${ic("ext",13)} Abrir no YouTube</a>`;
+  }
+  const modTag=comModulo?`<span class="desc" style="display:block">Módulo ${String(x.mod).padStart(2,"0")} — ${MODULOS.find(m=>m.n===x.mod).titulo}</span>`:"";
+  return `<div class="item ${feito?"feito":""}">
+    <span class="tipo ${x.t}">${ic(tipoIc,11)} ${tipoLabel}</span>
+    <div class="txt">
+      <div class="nome">${escapeHtml(x.n)}<span class="extra-flag">${ic("star",10)} extra</span></div>
+      ${modTag}${player}
+      <div class="acts">${acts}<button type="button" class="del" data-delx="${x.id}">${ic("trash",13)} Remover</button></div>
+    </div>
+    <label class="chk"><input type="checkbox" data-chk="x_${x.id}" ${feito?"checked":""} aria-label="Concluir ${escapeHtml(x.n)}">concluído</label>
+  </div>`;
+}
+function formExtra(modFixo){
+  const selMod=modFixo?`<input type="hidden" id="fxMod" value="${modFixo}">`:`
+    <div class="field"><label for="fxMod">Módulo</label>
+      <select id="fxMod">${MODULOS.map(m=>`<option value="${m.n}">${String(m.n).padStart(2,"0")} — ${m.titulo}</option>`).join("")}</select>
+    </div>`;
+  return `<div class="panel mt">
+    <h2>${ic("plus",14)} Adicionar conteúdo extra ${modFixo?"a este módulo":""}</h2>
+    <div class="addform">
+      ${selMod}
+      <div class="field"><label for="fxTipo">Tipo</label>
+        <select id="fxTipo"><option value="video">Vídeo</option><option value="artigo">Artigo</option><option value="livro">Livro</option></select>
+      </div>
+      <div class="field"><label for="fxNome">Título</label><input id="fxNome" type="text" placeholder="Ex.: Pandas em 1 hora" maxlength="120"></div>
+      <div class="field"><label for="fxUrl">Link (URL)</label><input id="fxUrl" type="url" placeholder="https://…  (vídeo: cole o link do YouTube)"></div>
+      <button class="btn-add" id="fxAdd">${ic("plus",14)} Adicionar</button>
+    </div>
+    <div class="form-msg" id="fxMsg"></div>
+  </div>`;
+}
+function ligarFormExtra(afterAdd){
+  const btn=document.getElementById("fxAdd");
+  if(!btn)return;
+  btn.addEventListener("click",()=>{
+    const mod=Number(document.getElementById("fxMod").value);
+    const t=document.getElementById("fxTipo").value;
+    const nome=document.getElementById("fxNome").value.trim();
+    const url=document.getElementById("fxUrl").value.trim();
+    const msg=document.getElementById("fxMsg");
+    if(!nome){msg.className="form-msg err";msg.textContent="Informe um título para o conteúdo.";return;}
+    if(!url||!/^https?:\/\//i.test(url)){msg.className="form-msg err";msg.textContent="Informe um link válido começando com http(s)://";return;}
+    if(t==="video"&&isYT(url)&&!ytParse(url)){msg.className="form-msg err";msg.textContent="Não reconheci esse link do YouTube — cole o link do vídeo (watch?v=…), do youtu.be ou de uma playlist (list=…).";return;}
+    addExtra(mod,t,nome,url);
+    msg.className="form-msg ok";msg.textContent="Adicionado! Ele já conta no progresso do módulo.";
+    afterAdd(mod);
+  });
+}
+
+/* ---------- minha área ---------- */
+function renderArea(){
+  crumb.textContent="Minha área — conteúdos adicionados por você";
+  const total=extras.length;
+  const grupos=MODULOS.filter(m=>extrasDoMod(m.n).length>0);
+  content.innerHTML=`
+    <div class="hero" style="grid-template-columns:1fr">
+      <div>
+        <div class="eyebrow">curadoria pessoal · ${total} conteúdo(s) adicionado(s)</div>
+        <h1>${ic("star",26)} Minha <em>área</em></h1>
+        <p class="sub">Personalize a trilha: adicione vídeos (cole o link do YouTube e ele vira player dentro do portal), artigos e livros aos módulos. Cada item entra como "Conteúdo extra", pode ser marcado como concluído e conta no progresso do módulo.</p>
+      </div>
+    </div>
+    ${formExtra(null)}
+    <h3 class="secT">${ic("book",17)} Meus conteúdos por módulo</h3>
+    ${total===0?`<div class="panel"><p class="empty">Você ainda não adicionou nada. Use o formulário acima — por exemplo, aquele vídeo de Pandas que você quer assistir vira parte oficial do Módulo 02.</p></div>`
+      :grupos.map(m=>{
+        const f=FASES.find(x=>x.id===m.fase);
+        return `<div class="area-mod-title" style="--c:${f.cor}"><span class="dot"></span>Módulo ${String(m.n).padStart(2,"0")} — ${m.titulo}</div>
+          <div class="panel">${extrasDoMod(m.n).map(x=>renderExtraItem(x,false)).join("")}</div>`;
+      }).join("")}
+  `;
+  ligarFormExtra(()=>renderArea());
+}
+
 /* ---------- módulo ---------- */
 function renderModulo(n){
   const m=MODULOS.find(x=>x.n===n);
   const f=FASES.find(x=>x.id===m.fase);
-  const exs=exDoMod(n);
+  const exs=exDoMod(n),xts=extrasDoMod(n);
+  abrirFase(f.id);
   crumb.textContent=`${f.tag} · Módulo ${String(n).padStart(2,"0")} — ${m.titulo}`;
   const tipoIc={curso:"book",video:"video",cert:"award",pratica:"target",entrega:"box",livro:"book"};
   content.innerHTML=`
@@ -861,7 +1057,8 @@ function renderModulo(n){
         <div class="meta">
           <span>${ic("clock",13)} ${m.h}h estimadas</span>
           <span>${ic("book",13)} ${m.itens.length} conteúdos</span>
-          <span>${ic("flask",13)} ${exs.length} teste(s) prático(s)</span>
+          <span>${ic("flask",13)} ${exs.length} teste(s)</span>
+          <span>${ic("star",13)} ${xts.length} extra(s) seus</span>
         </div>
         <p class="sub">${m.topicos}</p>
       </div>
@@ -874,7 +1071,7 @@ function renderModulo(n){
         const feito=!!estado[it.id];
         const tipoLabel={curso:"curso",video:"vídeo",cert:"certificado",pratica:"prática",entrega:"entregável",livro:"livro"}[it.t];
         const player=it.embed?`
-          <div class="player"><div class="frame" data-embed="${it.embed}">
+          <div class="player"><div class="frame" data-src="https://www.youtube-nocookie.com/embed/videoseries?list=${it.embed}&autoplay=1">
             <div class="ph" tabindex="0" role="button" aria-label="Reproduzir ${it.n}"><div class="playbtn">${ic("play",20,true)}</div><span>Assistir no portal</span></div>
           </div>
           <div class="fb">Se o player não iniciar, <a href="https://www.youtube.com/playlist?list=${it.embed}" target="_blank" rel="noopener">abra no YouTube</a>.</div></div>`:"";
@@ -896,6 +1093,13 @@ function renderModulo(n){
       }).join("")}
       </div>
     </div>
+    <div class="panel mt" id="pExtras">
+      <h2 class="p-head" tabindex="0" role="button" aria-expanded="true">${ic("star",14)} Conteúdo extra — adicionado por você <span class="chev">${ic("chevD",14)}</span></h2>
+      <div class="p-body" id="extrasList">
+        ${xts.length?xts.map(x=>renderExtraItem(x,false)).join(""):`<p class="empty">Nenhum conteúdo extra neste módulo ainda. Adicione abaixo — vídeos do YouTube viram player aqui dentro.</p>`}
+      </div>
+    </div>
+    ${formExtra(n)}
     ${exs.length?`<h3 class="secT">${ic("flask",17)} Testes práticos — compilador interno (Python no navegador)</h3>`+
       exs.map(ex=>{
         const feito=!!estado["ex_"+ex.id];
@@ -925,10 +1129,11 @@ function renderModulo(n){
 
   content.querySelectorAll("[data-goto]").forEach(b=>b.addEventListener("click",()=>irPara({tipo:"mod",n:Number(b.getAttribute("data-goto"))})));
   content.querySelector("[data-closemod]").addEventListener("click",()=>irPara({tipo:"dash"}));
-  const ph=content.querySelector("#pConteudo .p-head");
-  const tg=()=>{const p=ph.closest(".panel");p.classList.toggle("closed");ph.setAttribute("aria-expanded",!p.classList.contains("closed"));};
-  ph.addEventListener("click",tg);
-  ph.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();tg();}});
+  content.querySelectorAll(".p-head").forEach(ph=>{
+    const tg=()=>{const p=ph.closest(".panel");p.classList.toggle("closed");ph.setAttribute("aria-expanded",!p.classList.contains("closed"));};
+    ph.addEventListener("click",tg);
+    ph.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();tg();}});
+  });
   content.querySelectorAll(".ex-head").forEach(h=>{
     const t=()=>{const c=h.closest(".ex");c.classList.toggle("open");h.setAttribute("aria-expanded",c.classList.contains("open"));};
     h.addEventListener("click",t);
@@ -940,6 +1145,7 @@ function renderModulo(n){
         const s=ed.selectionStart;ed.setRangeText("    ",s,ed.selectionEnd,"end");}
     });
   });
+  ligarFormExtra(()=>renderModulo(n));
 }
 
 /* ---------- viewer central ---------- */
@@ -947,13 +1153,16 @@ function renderViewer(v){
   crumb.textContent="Visualizando: "+v.nome;
   content.innerHTML=`
     <div class="viewer-bar">
-      <button id="vBack">${ic("arrL",14)} Voltar ao módulo</button>
+      <button id="vBack">${ic("arrL",14)} Voltar</button>
       <a href="${v.url}" target="_blank" rel="noopener">${ic("ext",13)} Abrir em nova aba</a>
       <span style="font-family:var(--mono);font-size:12px;color:var(--ink-soft);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:50%">${v.url}</span>
     </div>
     <iframe class="viewer-frame" src="${v.url}" referrerpolicy="strict-origin-when-cross-origin" title="${v.nome}"></iframe>
     <div class="viewer-note">Se a janela ficar em branco, este site bloqueia a exibição dentro de outros portais (proteção do próprio site, comum em plataformas com login como Kaggle e freeCodeCamp). Nesse caso use "Abrir em nova aba" — e volte aqui para marcar como concluído.</div>`;
-  document.getElementById("vBack").addEventListener("click",()=>irPara({tipo:"mod",n:v.deMod}));
+  document.getElementById("vBack").addEventListener("click",()=>{
+    if(v.origem==="area")irPara({tipo:"area"});
+    else irPara({tipo:"mod",n:v.deMod||1});
+  });
 }
 
 /* ---------- eventos globais ---------- */
@@ -965,11 +1174,23 @@ content.addEventListener("change",e=>{
   atualizarUI();salvar();
 });
 content.addEventListener("click",e=>{
+  const dx=e.target.closest("[data-delx]");
+  if(dx){
+    delExtra(dx.getAttribute("data-delx"));
+    if(viewAtual.tipo==="mod")renderModulo(viewAtual.n);
+    else if(viewAtual.tipo==="area")renderArea();
+    atualizarUI();
+    return;
+  }
   const v=e.target.closest("[data-view]");
-  if(v){irPara({tipo:"viewer",url:v.getAttribute("data-view"),nome:v.getAttribute("data-nome"),deMod:viewAtual.n});return;}
+  if(v){
+    irPara({tipo:"viewer",url:v.getAttribute("data-view"),nome:v.getAttribute("data-nome"),
+      deMod:viewAtual.n,origem:viewAtual.tipo==="area"?"area":"mod"});
+    return;
+  }
   const ph=e.target.closest(".ph");
   if(ph){const fr=ph.parentElement;
-    fr.innerHTML=`<iframe src="https://www.youtube-nocookie.com/embed/videoseries?list=${fr.getAttribute("data-embed")}&autoplay=1" title="Player do YouTube" allow="accelerometer; autoplay; encrypted-media; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`;return;}
+    fr.innerHTML=`<iframe src="${fr.getAttribute("data-src")}" title="Player do YouTube" allow="accelerometer; autoplay; encrypted-media; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`;return;}
   const run=e.target.closest("[data-run]");
   if(run){const ex=EXERCICIOS.find(x=>x.id===run.getAttribute("data-run"));executarExercicio(ex,run);return;}
   const rst=e.target.closest("[data-reset]");
