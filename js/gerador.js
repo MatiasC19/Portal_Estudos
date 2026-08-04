@@ -1,13 +1,14 @@
 /* =====================================================================
-   Estude+ — gerador de trilhas
-   O usuário digita um tema; o gerador monta uma grade de estudos usando
-   uma base curada de fontes confiáveis (Microsoft Learn, Curso em Vídeo,
-   Khan Academy, freeCodeCamp, MDN, documentações oficiais, YouTube).
-   Temas fora da base recebem uma grade genérica inteligente com buscas
-   profundas nessas mesmas fontes.
-   Observação técnica: como o portal é 100% estático (GitHub Pages), a
-   "varredura" usa esta base curada + links profundos — não há servidor
-   consultando a internet em tempo real.
+   Estude+ — gerador de trilhas v2 (busca ONLINE)
+   Ao gerar, o portal consulta a internet em tempo real, direto do
+   navegador (APIs públicas com CORS, sem chave):
+     · Wikipédia (pt) — busca de artigos + extratos, que viram leitura
+       nativa dentro do portal (licença CC BY-SA, com atribuição e link)
+     · Google Books — livros reais sobre o tema
+   A base curada (8 temas) enriquece os resultados e serve de fallback
+   quando não há conexão. APIs de busca do YouTube/Google Web exigem
+   chave e servidor, por isso vídeos entram via link de busca — e viram
+   player no portal quando adicionados pela Minha área.
    ===================================================================== */
 (function(){
 
@@ -15,31 +16,76 @@ function norm(s){
   return String(s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9+ ]/g," ").replace(/\s+/g," ").trim();
 }
 function cap(s){s=String(s||"").trim();return s?s.charAt(0).toUpperCase()+s.slice(1):s;}
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
 
-/* guia de estudo nativo, gerado para cada módulo */
+/* ---------- fetch com timeout ---------- */
+function fx(url,ms){
+  ms=ms||9000;
+  const ctl=new AbortController();
+  const t=setTimeout(()=>ctl.abort(),ms);
+  return fetch(url,{signal:ctl.signal}).then(r=>{
+    clearTimeout(t);
+    if(!r.ok)throw new Error("http "+r.status);
+    return r.json();
+  },e=>{clearTimeout(t);throw e;});
+}
+
+/* ---------- Wikipédia (pt) ---------- */
+const WIKI="https://pt.wikipedia.org/w/api.php";
+async function wikiBusca(tema,qtd){
+  const d=await fx(WIKI+"?action=query&list=search&srsearch="+encodeURIComponent(tema)+"&srlimit="+(qtd||8)+"&format=json&origin=*");
+  return ((d.query||{}).search||[]).map(p=>p.title);
+}
+async function wikiExtratos(titulos){
+  if(!titulos.length)return{};
+  const d=await fx(WIKI+"?action=query&prop=extracts|info&inprop=url&exintro=1&explaintext=1&exlimit=max&titles="+encodeURIComponent(titulos.join("|"))+"&format=json&origin=*");
+  const pages=(d.query||{}).pages||{},out={};
+  Object.keys(pages).forEach(k=>{
+    const p=pages[k];
+    if(p&&p.extract)out[p.title]={texto:p.extract,url:p.fullurl||("https://pt.wikipedia.org/wiki/"+encodeURIComponent(p.title))};
+  });
+  return out;
+}
+function leituraWiki(titulo,ext,maxCh){
+  const bruto=String(ext.texto||"").slice(0,maxCh||1100);
+  const corte=bruto.length<(ext.texto||"").length;
+  const pars=bruto.split(/\n+/).filter(x=>x.trim()).map(p=>"<p>"+esc(p)+"</p>").join("");
+  return "<p><b>"+esc(titulo)+"</b></p>"+pars+
+    "<p style=\"font-size:12px\"><a href=\""+esc(ext.url)+"\" target=\"_blank\" rel=\"noopener\">"+(corte?"Continue lendo o artigo completo":"Artigo completo")+" na Wikipédia</a> · Fonte: Wikipédia, licença CC BY-SA 4.0.</p>";
+}
+
+/* ---------- Google Books ---------- */
+async function buscarLivros(tema,qtd){
+  try{
+    const d=await fx("https://www.googleapis.com/books/v1/volumes?q="+encodeURIComponent(tema)+"&langRestrict=pt&printType=books&maxResults="+(qtd||6));
+    return (d.items||[]).map(it=>{
+      const v=it.volumeInfo||{};
+      return {titulo:v.title||"Livro",autores:(v.authors||[]).join(", "),link:v.infoLink||v.previewLink||""};
+    }).filter(l=>l.titulo&&l.link);
+  }catch(e){return[];}
+}
+
+/* ---------- guia de estudo (nativo) ---------- */
 const DICAS=[
  "Técnica Pomodoro: 25 minutos de foco total + 5 de pausa. Quatro ciclos valem mais que uma tarde inteira de estudo disperso.",
  "Técnica Feynman: ao terminar um tópico, explique-o em voz alta como se ensinasse a um colega. Onde você travar é exatamente onde precisa revisar.",
  "Prática espaçada: revise os tópicos deste módulo 1 dia, 7 dias e 30 dias depois. A curva do esquecimento não perdoa quem estuda uma vez só.",
  "Aprenda fazendo: para cada hora de vídeo ou leitura, reserve pelo menos 30 minutos aplicando em um exemplo seu. Consumo sem prática vira ilusão de aprendizado.",
 ];
-function buildAula(tema,mod,idx){
+function guia(tema,mod,idx,leituras){
   const topicos=String(mod.topicos||"").split(/[;,·]/).map(t=>t.trim()).filter(Boolean);
-  const lista=topicos.length?("<ul>"+topicos.map(t=>"<li><b>"+cap(t)+"</b></li>").join("")+"</ul>")
-    :"<p>Explore os materiais deste módulo e anote os conceitos-chave que encontrar.</p>";
-  return {titulo:"Guia de estudo — "+mod.titulo,corpo:
-   "<p>Este é o seu mapa para o módulo <b>"+mod.titulo+"</b> da trilha de <b>"+cap(tema)+"</b>. Estude os materiais abaixo na ordem em que aparecem e use este checklist para saber quando o módulo está de fato dominado:</p>"+
-   lista+
-   "<p><b>Como estudar este módulo:</b> (1) assista/leia o material de cada tópico; (2) reproduza os exemplos você mesmo — sem copiar e colar; (3) crie um mini-exemplo próprio aplicando o tópico; (4) marque o item como concluído somente quando conseguir explicar o conceito com suas palavras.</p>"+
-   "<p>Adicione seus próprios vídeos e artigos a este módulo pela <b>Minha área</b> — eles entram aqui como conteúdo extra e contam no progresso.</p>"+
-   "<div class=\"dica-box\">💡 "+DICAS[idx%DICAS.length]+"</div>"};
+  const lista=topicos.length?("<ul>"+topicos.map(t=>"<li><b>"+esc(cap(t))+"</b></li>").join("")+"</ul>"):"";
+  return "<p>Seu mapa para o módulo <b>"+esc(mod.titulo)+"</b> da trilha de <b>"+esc(cap(tema))+"</b>. Domine este checklist:</p>"+lista+
+   (leituras?"<p><b>Leituras deste módulo (obtidas online, para ler aqui no portal):</b></p>"+leituras:"")+
+   "<p><b>Como estudar:</b> (1) leia/assista o material de cada tópico; (2) reproduza os exemplos você mesmo; (3) crie um mini-exemplo próprio; (4) marque como concluído só quando conseguir explicar com suas palavras. Adicione vídeos e artigos seus pela <b>Minha área</b>.</p>"+
+   "<div class=\"dica-box\">💡 "+DICAS[idx%DICAS.length]+"</div>";
 }
 
-/* fontes de busca profunda (para qualquer tema) */
+/* ---------- fontes de busca profunda ---------- */
 function fontesBusca(tema){
   const q=encodeURIComponent(tema);
   return [
-   {t:"video",n:"YouTube — melhores cursos de "+cap(tema),d:"Busca curada no YouTube; escolha um curso bem avaliado e adicione a playlist pela Minha área para assistir no portal.",u:"https://www.youtube.com/results?search_query="+encodeURIComponent("curso completo de "+tema)},
+   {t:"video",n:"YouTube — melhores cursos de "+cap(tema),d:"Escolha um curso bem avaliado e adicione a playlist pela Minha área para assistir no portal.",u:"https://www.youtube.com/results?search_query="+encodeURIComponent("curso completo de "+tema)},
    {t:"curso",n:"Microsoft Learn — trilhas oficiais sobre "+cap(tema),d:"Conteúdo oficial e gratuito da Microsoft.",u:"https://learn.microsoft.com/pt-br/search/?terms="+q},
    {t:"artigo",n:"freeCodeCamp News — artigos sobre "+cap(tema),d:"Milhares de artigos técnicos gratuitos.",u:"https://www.freecodecamp.org/news/search/?query="+q},
    {t:"curso",n:"Curso em Vídeo — busca por "+cap(tema),d:"Cursos gratuitos em português com certificado.",u:"https://www.cursoemvideo.com/?s="+q},
@@ -47,7 +93,7 @@ function fontesBusca(tema){
   ];
 }
 
-/* ============ base curada de temas populares ============ */
+/* ============ base curada (qualidade + fallback offline) ============ */
 const BASE=[
 {k:["excel","planilha","planilhas"],nome:"Excel do básico ao avançado",c1:"#107C41",c2:"#0E5C2F",
  desc:"Domine a ferramenta mais usada do mundo corporativo: fórmulas, funções, tabelas dinâmicas, dashboards e automação.",
@@ -71,7 +117,7 @@ const BASE=[
     {t:"curso",n:"Microsoft Learn — Power Query",d:"Transformação de dados sem fórmula.",u:"https://learn.microsoft.com/pt-br/power-query/"},
     {t:"entrega",n:"Fluxo Power Query: importar 12 arquivos mensais e consolidar",d:"Atualizável com um clique."}]},
  ]},
-{k:["power bi","powerbi","pbi"],nome:"Power BI completo",c1:"#F2C811",c2:"#E8A33D",
+{k:["power bi","powerbi","pbi"],nome:"Power BI completo",c1:"#B8860B",c2:"#E8A33D",
  desc:"Do zero ao dashboard profissional: modelagem, DAX, visuais e publicação — alinhado à certificação PL-300.",
  modulos:[
   {titulo:"Primeiros dashboards",h:15,topicos:"Power BI Desktop, conectar fontes, visuais básicos, filtros e segmentações, publicação no serviço",
@@ -114,7 +160,7 @@ const BASE=[
     {t:"artigo",n:"Documentação do PostgreSQL (tutorial)",d:"O banco open source de referência.",u:"https://www.postgresql.org/docs/current/tutorial.html"},
     {t:"entrega",n:"Banco modelado + 10 consultas de negócio",d:"Diagrama incluído no repositório."}]},
  ]},
-{k:["python"],nome:"Python essencial",c1:"#3776AB",c2:"#FFD343",
+{k:["python"],nome:"Python essencial",c1:"#3776AB",c2:"#2B5B84",
  desc:"A linguagem mais versátil do mercado: lógica, estruturas, funções e automações do dia a dia.",
  modulos:[
   {titulo:"Lógica e primeiros programas",h:20,topicos:"Variáveis e tipos, entrada e saída, condicionais, laços, operadores",
@@ -156,7 +202,7 @@ const BASE=[
     {t:"pratica",n:"EF SET — teste de nível gratuito com certificado",d:"Certificado aceito no LinkedIn.",u:"https://www.efset.org/pt/"},
     {t:"entrega",n:"3 entrevistas simuladas gravadas em inglês",d:"Com autoavaliação escrita."}]},
  ]},
-{k:["javascript","js"],nome:"JavaScript e web",c1:"#F7DF1E",c2:"#F59E0B",
+{k:["javascript","js"],nome:"JavaScript e web",c1:"#B45309",c2:"#F59E0B",
  desc:"A linguagem da web: fundamentos, DOM, interatividade e primeiros projetos front-end.",
  modulos:[
   {titulo:"Fundamentos da linguagem",h:20,topicos:"Variáveis (let/const), tipos, funções e arrow functions, arrays e objetos, laços",
@@ -219,26 +265,21 @@ const BASE=[
 function acharBase(tema){
   const t=norm(tema);
   if(!t)return null;
-  for(const b of BASE){
-    for(const k of b.k){
-      if(t===k||t.includes(k)||k.includes(t))return b;
-    }
-  }
+  for(const b of BASE){for(const k of b.k){if(t===k||t.includes(k)||k.includes(t))return b;}}
   return null;
 }
-
 const PAL_GEN=[["#4F46E5","#7C3AED"],["#0E7C7B","#3B7DD8"],["#D95F02","#E7298A"],["#16A34A","#0E7C7B"],["#9467BD","#D62728"]];
+function paleta(tema){return PAL_GEN[Math.abs(norm(tema).split("").reduce((a,c)=>a+c.charCodeAt(0),0))%PAL_GEN.length];}
 
-function gerar(tema){
-  tema=String(tema||"").trim();
+/* ---------- montagem offline (fallback) ---------- */
+function planoOffline(tema){
   const base=acharBase(tema);
   let plano;
   if(base){
     plano={nome:base.nome,desc:base.desc,c1:base.c1,c2:base.c2,curada:true,
       modulos:base.modulos.map(m=>({titulo:m.titulo,h:m.h,topicos:m.topicos,itens:m.itens.map(i=>Object.assign({},i))}))};
   }else{
-    const pal=PAL_GEN[Math.abs(norm(tema).split("").reduce((a,c)=>a+c.charCodeAt(0),0))%PAL_GEN.length];
-    const f=fontesBusca(tema);
+    const pal=paleta(tema),f=fontesBusca(tema);
     plano={nome:"Trilha de "+cap(tema),c1:pal[0],c2:pal[1],curada:false,
       desc:"Grade gerada pelo Estude+ a partir de fontes confiáveis. Refine adicionando vídeos e artigos pela Minha área.",
       modulos:[
@@ -248,8 +289,64 @@ function gerar(tema){
        {titulo:"Projeto final",h:15,topicos:"Projeto integrador, revisão dos módulos, publicação do resultado, próximos passos",itens:[f[1],{t:"entrega",n:"Projeto final de "+cap(tema)+" publicado",d:"GitHub, PDF ou apresentação."}]},
       ]};
   }
-  plano.modulos.forEach((m,i)=>{m.n=i+1;m.aula=buildAula(base?base.nome:tema,m,i);});
+  plano.online=false;
+  plano.modulos.forEach((m,i)=>{m.n=i+1;m.aula={titulo:"Guia de estudo — "+m.titulo,corpo:guia(base?base.nome:tema,m,i,"")};});
   return plano;
+}
+
+/* ---------- montagem ONLINE ---------- */
+async function planoOnline(tema,onStatus){
+  const say=s=>{try{if(onStatus)onStatus(s);}catch(e){}};
+  const base=acharBase(tema);
+  say("Buscando artigos na Wikipédia…");
+  const titulos=await wikiBusca(tema,8);           /* falhou? exceção sobe → fallback */
+  say("Lendo os artigos encontrados…");
+  const extratos=await wikiExtratos(titulos.slice(0,7)).catch(()=>({}));
+  say("Buscando livros no Google Books…");
+  const livros=await buscarLivros(tema,6);
+  say("Montando a grade de estudos…");
+
+  const comExt=titulos.filter(t=>extratos[t]);
+  const plano=planoOffline(tema);                   /* estrutura de partida */
+  plano.online=true;
+  plano.curada=!!base;
+  plano.fontesOnline=["Wikipédia"+(comExt.length?" ("+comExt.length+" artigos)":""), "Google Books"+(livros.length?" ("+livros.length+" livros)":"")];
+
+  /* distribui leituras da Wikipédia pelos módulos (viram leitura nativa na aula) */
+  const nMods=plano.modulos.length;
+  plano.modulos.forEach((m,i)=>{
+    let leituras="";
+    if(i===0&&comExt[0]){
+      leituras+=leituraWiki(comExt[0],extratos[comExt[0]],1400);
+    }
+    const rel=comExt.slice(1);
+    const porMod=Math.ceil(rel.length/Math.max(1,nMods-1));
+    if(i>0){
+      rel.slice((i-1)*porMod,i*porMod).forEach(t=>{leituras+=leituraWiki(t,extratos[t],900);});
+    }
+    if(!base&&i<nMods-1){
+      /* em trilhas não curadas, os títulos achados também viram tópicos */
+      const meus=(i===0&&comExt[0])?[comExt[0]]:rel.slice((i-1)*porMod,i*porMod);
+      if(meus.length)m.topicos=meus.join(", ");
+    }
+    m.aula={titulo:"Guia de estudo — "+m.titulo,corpo:guia(base?base.nome:tema,m,i,leituras)};
+    /* 1 livro real por módulo, enquanto houver */
+    const lv=livros[i];
+    if(lv)m.itens.push({t:"livro",n:lv.titulo+(lv.autores?" — "+lv.autores:""),d:"Livro encontrado agora no Google Books.",u:lv.link});
+  });
+  return plano;
+}
+
+/* API pública: sempre tenta online; cai para offline se a rede falhar */
+async function gerar(tema,onStatus){
+  tema=String(tema||"").trim();
+  try{
+    return await planoOnline(tema,onStatus);
+  }catch(e){
+    const p=planoOffline(tema);
+    p.online=false;
+    return p;
+  }
 }
 
 window.GERADOR={gerar:gerar,temasCurados:BASE.map(b=>b.nome)};
