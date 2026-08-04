@@ -1,7 +1,7 @@
 /* =====================================================================
    Estude+ — lógica da aplicação (multi-trilhas)
-   Views: início · trilha · módulo · minha área · nova trilha (gerador)
-   · configurações · visualizador
+   Views: início · trilha · módulo · minha área · nova trilha (gerador
+   online) · configurações · visualizador
    ===================================================================== */
 
 /* ---------------- ícones ---------------- */
@@ -40,9 +40,26 @@ const P={
  gear:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M17 7l2.1-2.1M4.9 19.1L7 17"/>',
  down:'<path d="M12 3v12"/><path d="M6 11l6 6 6-6"/><path d="M4 21h16"/>',
  up:'<path d="M12 21V9"/><path d="M6 13l6-6 6 6"/><path d="M4 3h16"/>',
+ alert:'<path d="M12 3L2 21h20z"/><path d="M12 10v5"/><path d="M12 18v.5"/>',
+ search:'<circle cx="11" cy="11" r="7"/><path d="M20 20l-4.3-4.3"/>',
+ bulb:'<path d="M9 18h6"/><path d="M10 21h4"/><path d="M12 3a6 6 0 0 1 4 10.5c-.8.7-1 1.5-1 2.5h-6c0-1-.2-1.8-1-2.5A6 6 0 0 1 12 3z"/>',
+ wifi:'<path d="M2 9a15 15 0 0 1 20 0"/><path d="M5.5 12.5a10 10 0 0 1 13 0"/><path d="M9 16a5 5 0 0 1 6 0"/><path d="M12 19.5v.5"/>',
 };
 function ic(n,s=16,fill=false){return `<svg class="ic" width="${s}" height="${s}" viewBox="0 0 24 24" fill="${fill?"currentColor":"none"}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[n]||""}</svg>`;}
 function escapeHtml(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+/* troca emojis por ícones em conteúdos de aula (inclui aulas antigas) */
+function aulaHtml(h){
+  return String(h)
+    .replace(/💡\s*/g,ic("bulb",14)+" ")
+    .replace(/✅\s*/g,ic("check",14)+" ")
+    .replace(/⚠️?\s*/g,ic("alert",14)+" ")
+    .replace(/❌\s*/g,ic("close",14)+" ")
+    .replace(/🔎\s*/g,ic("search",14)+" ")
+    .replace(/📖\s*/g,ic("book",14)+" ")
+    .replace(/🎬\s*/g,ic("video",14)+" ")
+    .replace(/⭐\s*/g,ic("star",14)+" ")
+    .replace(/🐍\s*/g,ic("code",14)+" ");
+}
 const isYT=u=>!!u&&(u.includes("youtube.com")||u.includes("youtu.be"));
 function ytParse(u){
   try{
@@ -163,7 +180,7 @@ def _run_exercise(user_code, test_code):
 function getPyodide(){
   if(!pyodidePromise){
     const st=document.getElementById("pyStatus");
-    st.textContent="⏳ carregando Python…";
+    st.innerHTML=ic("clock",12)+" carregando Python…";
     pyodidePromise=new Promise((res,rej)=>{
       const s=document.createElement("script");
       s.src="https://cdn.jsdelivr.net/pyodide/v0.25.1/full/pyodide.js";
@@ -171,13 +188,13 @@ function getPyodide(){
         try{
           const py=await loadPyodide({indexURL:"https://cdn.jsdelivr.net/pyodide/v0.25.1/full/"});
           py.runPython(HARNESS);
-          st.textContent="🐍 Python pronto";
+          st.innerHTML=ic("check",12)+" Python pronto";
           res(py);
         }catch(e){rej(e);}
       };
       s.onerror=()=>rej(new Error("cdn"));
       document.head.appendChild(s);
-    }).catch(e=>{st.textContent="⚠ Python indisponível";pyodidePromise=null;throw e;});
+    }).catch(e=>{st.innerHTML=ic("alert",12)+" Python indisponível";pyodidePromise=null;throw e;});
   }
   return pyodidePromise;
 }
@@ -195,17 +212,17 @@ async function executarExercicio(ex,btn){
     pre.textContent=res.out||"(sem saída no print)";
     if(res.ok){
       ver.className="veredito ok";
-      ver.innerHTML="✅ <b>Correto!</b> Todos os testes passaram. Exercício marcado como concluído.";
+      ver.innerHTML=ic("check",15)+" <b>Correto!</b> Todos os testes passaram. Exercício marcado como concluído.";
       if(!estado["ex_"+ex.id]){estado["ex_"+ex.id]=true;salvar();atualizarUI();}
       const est=card.querySelector(".est");est.innerHTML=ic("check",13)+" concluído";est.classList.add("ok");
     }else{
       ver.className="veredito err";
-      ver.innerHTML="❌ <b>Ainda não.</b><br><span style='font-family:var(--mono);font-size:12px'>"+escapeHtml(res.err)+"</span>"+
-        "<div class='ajuste'>💡 <b>Ajuste sugerido:</b> "+ex.dica+"</div>";
+      ver.innerHTML=ic("close",15)+" <b>Ainda não.</b><br><span style='font-family:var(--mono);font-size:12px'>"+escapeHtml(res.err)+"</span>"+
+        "<div class='ajuste'>"+ic("bulb",13)+" <b>Ajuste sugerido:</b> "+ex.dica+"</div>";
     }
   }catch(e){
     ver.className="veredito err";
-    ver.innerHTML="⚠ Não foi possível carregar o ambiente Python (requer internet no primeiro uso, ~10&nbsp;MB via CDN). Verifique a conexão e tente de novo.";
+    ver.innerHTML=ic("alert",15)+" Não foi possível carregar o ambiente Python (requer internet no primeiro uso, ~10&nbsp;MB via CDN). Verifique a conexão e tente de novo.";
   }
   btn.disabled=false;btn.innerHTML=ic("play",14,true)+" Executar e verificar";
 }
@@ -337,7 +354,7 @@ function renderHome(){
       <div>
         <div class="eyebrow">Estude+ · ${trilhas.length} trilha(s)</div>
         <h1>Bem-vindo de volta. <em>Continue de onde parou.</em></h1>
-        <p class="sub">Aulas para ler no portal, players de vídeo integrados, testes com correção automática e trilhas geradas sob medida para qualquer tema.</p>
+        <p class="sub">Aulas para ler no portal, players de vídeo integrados, testes com correção automática e trilhas geradas com busca online para qualquer tema.</p>
       </div>
     </div>
     <h3 class="secT">${ic("layers",17)} Minhas trilhas</h3>
@@ -355,7 +372,7 @@ function renderHome(){
       </button>`;
     }).join("")}</div>
     <h3 class="secT">${ic("zap",17)} Quer estudar outro tema?</h3>
-    <div class="panel"><p style="font-size:13.5px;color:var(--ink-soft)">Use o gerador em <b>Nova trilha</b>: digite o tema (Excel, inglês, SQL…), aprove a grade sugerida e a trilha nasce com módulos, guias de estudo e materiais de fontes confiáveis.</p></div>`;
+    <div class="panel"><p style="font-size:13.5px;color:var(--ink-soft)">Use o gerador em <b>Nova trilha</b>: digite o tema (Excel, inglês, SQL…), o portal busca online nas fontes confiáveis, você aprova a grade e a trilha nasce com módulos, leituras e materiais.</p></div>`;
   content.querySelectorAll("[data-gotrilha]").forEach(b=>b.addEventListener("click",()=>irPara({tipo:"trilha",tid:b.getAttribute("data-gotrilha")})));
 }
 
@@ -610,7 +627,7 @@ function renderModulo(tid,n){
     </div>
     ${m.aula?`<div class="panel mt" id="pAula">
       <h2 class="p-head" tabindex="0" role="button" aria-expanded="true">${ic("book",14)} Aula no portal — ${escapeHtml(m.aula.titulo)} <span class="chev">${ic("chevD",14)}</span></h2>
-      <div class="p-body"><div class="aula">${m.aula.corpo}</div></div>
+      <div class="p-body"><div class="aula">${aulaHtml(m.aula.corpo)}</div></div>
     </div>`:""}
     ${noPortal.length?`<div class="panel mt">
       <h2 class="p-head" tabindex="0" role="button" aria-expanded="true">${ic("video",14)} Conteúdo no portal <span class="chev">${ic("chevD",14)}</span></h2>
@@ -622,7 +639,7 @@ function renderModulo(tid,n){
     </div>`:""}
     ${externos.length?`<div class="panel mt closed">
       <h2 class="p-head" tabindex="0" role="button" aria-expanded="false">${ic("ext",14)} Materiais de fontes confiáveis — abrem no visualizador ou em nova aba <span class="chev">${ic("chevD",14)}</span></h2>
-      <div class="p-body"><p class="empty">Cursos e certificações de plataformas parceiras do estudo (Microsoft Learn, Kaggle, freeCodeCamp…). Algumas bloqueiam a exibição dentro de outros sites por segurança — nesses casos, o botão de nova aba resolve.</p>${externos.map(renderItem).join("")}</div>
+      <div class="p-body"><p class="empty">Cursos, referências e certificações de fontes confiáveis. Algumas plataformas bloqueiam a exibição dentro de outros sites por segurança — nesses casos, o botão de nova aba resolve.</p>${externos.map(renderItem).join("")}</div>
     </div>`:""}
     ${exs.length?`<h3 class="secT">${ic("flask",17)} Testes práticos — compilador interno (Python no navegador)</h3>`+
       exs.map(ex=>{
@@ -701,7 +718,7 @@ function renderArea(){
   ligarFormExtra(()=>renderArea());
 }
 
-/* ---------------- nova trilha (gerador) ---------------- */
+/* ---------------- nova trilha (gerador online) ---------------- */
 const PALETAS=[["#4F46E5","#7C3AED"],["#0E7C7B","#3B7DD8"],["#D95F02","#E7298A"],["#16A34A","#0E7C7B"],["#9467BD","#D62728"],["#8C564B","#FF7F0E"]];
 let gradePlano=null;
 function renderNova(){
@@ -709,18 +726,18 @@ function renderNova(){
   content.innerHTML=`
     <div class="hero solo">
       <div>
-        <div class="eyebrow">gerador de trilhas Estude+</div>
+        <div class="eyebrow">gerador de trilhas Estude+ · busca online</div>
         <h1>${ic("zap",26)} Nova <em>trilha</em></h1>
-        <p class="sub">Digite o que você quer aprender. O Estude+ monta a grade de estudos — módulos, tópicos, guia de estudo e materiais de fontes confiáveis — e você aprova antes de criar.</p>
+        <p class="sub">Digite o que você quer aprender. O Estude+ busca na internet agora — artigos que viram leitura dentro do portal e livros reais — monta a grade e você aprova antes de criar.</p>
       </div>
     </div>
     <div class="panel mt">
-      <h2>${ic("zap",14)} Gerar trilha inteligente</h2>
+      <h2>${ic("search",14)} Gerar trilha com busca online</h2>
       <div class="addform ger">
-        <div class="field"><label for="gerTema">Qual tema você quer estudar?</label><input id="gerTema" type="text" placeholder="Ex.: Excel, Power BI, SQL, inglês, JavaScript, estatística, Git…" maxlength="60"></div>
-        <button class="btn-add" id="gerBtn">${ic("zap",14)} Gerar grade de estudos</button>
+        <div class="field"><label for="gerTema">Qual tema você quer estudar?</label><input id="gerTema" type="text" placeholder="Ex.: Excel, Power BI, SQL, inglês, fotografia, oratória…" maxlength="60"></div>
+        <button class="btn-add" id="gerBtn">${ic("search",14)} Buscar e gerar grade</button>
       </div>
-      <div class="fontes-nota">🔎 Fontes consultadas pelo gerador: Microsoft Learn, Curso em Vídeo, Khan Academy, freeCodeCamp, MDN, documentações oficiais e canais de referência do YouTube. Temas com grade especial curada: ${GERADOR.temasCurados.join(" · ")}. Outros temas recebem uma grade inteligente com buscas profundas nessas fontes.</div>
+      <div class="fontes-nota">${ic("wifi",13)} A busca acontece agora, direto do seu navegador: <b>Wikipédia</b> (artigos que viram leitura nativa no portal, licença CC BY-SA com crédito e link) e <b>Google Books</b> (livros reais sobre o tema), mais materiais de Microsoft Learn, Curso em Vídeo, Khan Academy, freeCodeCamp e YouTube. Temas com grade especial curada: ${GERADOR.temasCurados.join(" · ")}.</div>
       <div class="form-msg" id="gerMsg"></div>
     </div>
     <div id="gerPreview"></div>
@@ -738,17 +755,37 @@ function renderNova(){
     </div>
     <h3 class="secT">${ic("layers",17)} Minhas trilhas personalizadas</h3>
     <div id="listaCustoms"></div>`;
-  document.getElementById("gerBtn").addEventListener("click",()=>{
+  const gerBtn=document.getElementById("gerBtn");
+  gerBtn.addEventListener("click",async()=>{
     const tema=document.getElementById("gerTema").value.trim();
     const msg=document.getElementById("gerMsg");
     if(!tema){msg.className="form-msg err";msg.textContent="Digite um tema para gerar a grade.";return;}
+    gerBtn.disabled=true;
+    gerBtn.innerHTML=ic("clock",14)+" Buscando…";
     msg.className="form-msg ok";
-    gradePlano=GERADOR.gerar(tema);
-    msg.textContent=gradePlano.curada?"Encontrei uma grade curada para esse tema! Revise abaixo e aprove.":"Grade gerada a partir das fontes confiáveis. Revise abaixo e aprove.";
+    msg.innerHTML=ic("search",12)+" Consultando fontes na internet…";
+    gradePlano=null;renderPreviewGrade();
+    try{
+      gradePlano=await GERADOR.gerar(tema,txt=>{msg.innerHTML=ic("search",12)+" "+escapeHtml(txt);});
+    }catch(e){gradePlano=null;}
+    gerBtn.disabled=false;
+    gerBtn.innerHTML=ic("search",14)+" Buscar e gerar grade";
+    if(!gradePlano){
+      msg.className="form-msg err";
+      msg.textContent="Não consegui gerar a grade agora. Verifique a conexão e tente de novo.";
+      return;
+    }
+    if(gradePlano.online){
+      msg.className="form-msg ok";
+      msg.innerHTML=ic("check",12)+" Busca online concluída: "+escapeHtml((gradePlano.fontesOnline||[]).join(" · "))+". Revise a grade e aprove.";
+    }else{
+      msg.className="form-msg err";
+      msg.innerHTML=ic("alert",12)+" Sem conexão com as fontes agora — montei a grade de referência offline. Gere de novo com internet para incluir as leituras e livros.";
+    }
     renderPreviewGrade();
     document.getElementById("gerPreview").scrollIntoView({behavior:"smooth",block:"start"});
   });
-  document.getElementById("gerTema").addEventListener("keydown",e=>{if(e.key==="Enter")document.getElementById("gerBtn").click();});
+  document.getElementById("gerTema").addEventListener("keydown",e=>{if(e.key==="Enter")gerBtn.click();});
   const ph=document.querySelector("#pManual .p-head");
   const tg=()=>{const p=ph.closest(".panel");p.classList.toggle("closed");ph.setAttribute("aria-expanded",!p.classList.contains("closed"));};
   ph.addEventListener("click",tg);
@@ -775,14 +812,15 @@ function renderPreviewGrade(){
   if(!gradePlano){box.innerHTML="";return;}
   const g=gradePlano;
   const totalH=g.modulos.reduce((s,m)=>s+m.h,0);
+  const selo=g.online?ic("wifi",11)+" buscado online agora":(g.curada?"base curada (offline)":"grade offline");
   box.innerHTML=`<div class="panel mt" style="border:2px solid ${g.c1}">
-    <h2>${ic("layers",14)} Grade sugerida — ${escapeHtml(g.nome)} · ${totalH}h <span style="margin-left:auto;font-family:var(--mono);font-size:10px;color:${g.curada?"var(--ok)":"var(--ink-soft)"}">${g.curada?"✔ base curada":"grade gerada"}</span></h2>
+    <h2>${ic("layers",14)} Grade sugerida — ${escapeHtml(g.nome)} · ${totalH}h <span style="margin-left:auto;font-family:var(--mono);font-size:10px;color:${g.online?"var(--ok)":"var(--ink-soft)"};display:inline-flex;align-items:center;gap:4px">${selo}</span></h2>
     <p style="font-size:13px;color:var(--ink-soft);margin-bottom:6px">${escapeHtml(g.desc)}</p>
     ${g.modulos.map(m=>`<div class="grade-mod">
       <span class="gn">${String(m.n).padStart(2,"0")}</span>
       <div style="flex:1;min-width:0"><b>${escapeHtml(m.titulo)} · ${m.h}h</b>
         <div class="gt">${escapeHtml(m.topicos)}</div>
-        <div class="gf">${ic("book",11)} guia de estudo incluso · ${m.itens.length} materiais de fontes confiáveis</div>
+        <div class="gf">${ic("book",11)} guia de estudo${g.online?" com leituras online":""} · ${m.itens.length} materiais</div>
       </div></div>`).join("")}
     <div class="acts" style="margin-top:12px">
       <button class="btn-add" id="gerAprovar">${ic("check",14)} Aprovar e criar trilha</button>
