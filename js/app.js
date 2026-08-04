@@ -1,6 +1,7 @@
 /* =====================================================================
-   StudyHub — lógica da aplicação (multi-trilhas)
-   Views: home · trilha · módulo · minha área · nova trilha · configurações
+   Estude+ — lógica da aplicação (multi-trilhas)
+   Views: início · trilha · módulo · minha área · nova trilha (gerador)
+   · configurações · visualizador
    ===================================================================== */
 
 /* ---------------- ícones ---------------- */
@@ -74,7 +75,7 @@ async function carregar(){
   try{
     const e=await lerChave(KEY);estado=e?JSON.parse(e):{};
     const x=await lerChave(KEYX);extras=x?JSON.parse(x):[];
-    extras=extras.map(it=>it.tid?it:Object.assign({tid:"ds"},it)); // migração v4→v5
+    extras=extras.map(it=>it.tid?it:Object.assign({tid:"ds"},it));
     const t=await lerChave(KEYT);customs=t?JSON.parse(t):[];
     const c=await lerChave(KEYC);config=c?JSON.parse(c):{ritmo:9};
     if(!config.ritmo)config.ritmo=9;
@@ -103,10 +104,10 @@ function setSaveMsg(){
 
 /* ---------------- trilhas ---------------- */
 function normalizarCustom(c){
-  return {id:c.id,nome:c.nome,desc:c.desc||"Trilha pessoal criada por você.",icon:"star",c1:c.c1||"#1F77B4",c2:c.c2||"#7A4DBE",
+  return {id:c.id,nome:c.nome,desc:c.desc||"Trilha pessoal criada por você.",icon:c.icon||"star",c1:c.c1||"#4F46E5",c2:c.c2||"#7C3AED",
     custom:true,milestones:null,
-    fases:[{id:"c1",cor:"var(--f1)",corB:"var(--f1b)",tag:"Trilha pessoal",nome:"Módulos",icon:"star"}],
-    modulos:(c.modulos||[]).map(m=>Object.assign({fase:"c1",itens:[]},m)),
+    fases:[{id:"c1",cor:c.c1||"var(--brand)",corB:c.c2||"var(--brand2)",tag:"Trilha pessoal",nome:"Módulos",icon:c.icon||"star"}],
+    modulos:(c.modulos||[]).map(m=>Object.assign({},m,{fase:"c1",itens:m.itens||[]})),
     exercicios:[]};
 }
 function getTrilhas(){return TRILHAS_BUILTIN.concat(customs.map(normalizarCustom));}
@@ -234,7 +235,7 @@ function montarNav(){
   document.getElementById("burger").innerHTML=ic("menu",18);
   document.getElementById("navHome").innerHTML=`<span class="nic">${ic("home",16)}</span><span class="lbl">Início</span>`;
   document.getElementById("navArea").innerHTML=`<span class="nic">${ic("star",16)}</span><span class="lbl">Minha área</span>`;
-  document.getElementById("navNova").innerHTML=`<span class="nic">${ic("plus",16)}</span><span class="lbl">Nova trilha</span>`;
+  document.getElementById("navNova").innerHTML=`<span class="nic">${ic("zap",16)}</span><span class="lbl">Nova trilha</span>`;
   document.getElementById("navConfig").innerHTML=`<span class="nic">${ic("gear",16)}</span><span class="lbl">Configurações</span>`;
   document.getElementById("navHome").addEventListener("click",()=>irPara({tipo:"home"}));
   document.getElementById("navArea").addEventListener("click",()=>irPara({tipo:"area"}));
@@ -250,7 +251,7 @@ function montarNav(){
 function renderCtx(){
   const ctx=document.getElementById("ctxnav");
   const tid=viewAtual.tid;
-  if(!tid||viewAtual.tipo==="viewer"&&!viewAtual.tid){ctx.innerHTML="";return;}
+  if(!tid){ctx.innerHTML="";return;}
   const t=getTrilha(tid);
   if(!t){ctx.innerHTML="";return;}
   ctx.innerHTML=`<div class="side-sec">Trilha atual · ${escapeHtml(t.nome)}</div>`+
@@ -327,16 +328,16 @@ function atualizarUI(){
   setSaveMsg();
 }
 
-/* ---------------- home ---------------- */
+/* ---------------- início ---------------- */
 function renderHome(){
   crumb.textContent="Início — minhas trilhas";
   const trilhas=getTrilhas();
   content.innerHTML=`
     <div class="hero solo">
       <div>
-        <div class="eyebrow">StudyHub · ${trilhas.length} trilha(s) disponíveis</div>
+        <div class="eyebrow">Estude+ · ${trilhas.length} trilha(s)</div>
         <h1>Bem-vindo de volta. <em>Continue de onde parou.</em></h1>
-        <p class="sub">Suas trilhas de estudo em um só lugar: aulas nativas para ler no portal, players de vídeo integrados, testes com correção automática e a sua curadoria pessoal de conteúdos.</p>
+        <p class="sub">Aulas para ler no portal, players de vídeo integrados, testes com correção automática e trilhas geradas sob medida para qualquer tema.</p>
       </div>
     </div>
     <h3 class="secT">${ic("layers",17)} Minhas trilhas</h3>
@@ -353,8 +354,8 @@ function renderHome(){
         </div>
       </button>`;
     }).join("")}</div>
-    <h3 class="secT">${ic("plus",17)} Quer estudar outro tema?</h3>
-    <div class="panel"><p style="font-size:13.5px;color:var(--ink-soft)">Crie uma trilha personalizada em <b>Nova trilha</b>: defina os módulos e alimente cada um com vídeos (players no portal), artigos e livros pela <b>Minha área</b>. Todo item conta no seu progresso.</p></div>`;
+    <h3 class="secT">${ic("zap",17)} Quer estudar outro tema?</h3>
+    <div class="panel"><p style="font-size:13.5px;color:var(--ink-soft)">Use o gerador em <b>Nova trilha</b>: digite o tema (Excel, inglês, SQL…), aprove a grade sugerida e a trilha nasce com módulos, guias de estudo e materiais de fontes confiáveis.</p></div>`;
   content.querySelectorAll("[data-gotrilha]").forEach(b=>b.addEventListener("click",()=>irPara({tipo:"trilha",tid:b.getAttribute("data-gotrilha")})));
 }
 
@@ -392,6 +393,7 @@ function renderTrilha(tid){
           <select id="ritmo">
             <option value="20">Acelerado — 20 h/semana</option>
             <option value="16">Intensivo — 16 h/semana</option>
+            <option value="12">Intermediário — 12 h/semana</option>
             <option value="9">Sustentável — 9 h/semana</option>
           </select>
         </div>
@@ -481,7 +483,7 @@ function desenharCurva(t){
   svg.innerHTML=g;
 }
 
-/* ---------------- extras (render + form) ---------------- */
+/* ---------------- extras (render + form da Minha área) ---------------- */
 function playerDeUrl(u,titulo){
   const yt=ytParse(u);
   if(!yt)return"";
@@ -517,16 +519,13 @@ function renderExtraItem(x,mostrarOrigem){
     <label class="chk"><input type="checkbox" data-chk="x_${x.id}" ${feito?"checked":""} aria-label="Concluir ${escapeHtml(x.n)}">concluído</label>
   </div>`;
 }
-function formExtra(tidFixo,modFixo){
+function formExtra(){
   const trilhas=getTrilhas();
-  const selTid=tidFixo?`<input type="hidden" id="fxTid" value="${tidFixo}">`
-    :`<div class="field"><label for="fxTid">Trilha</label><select id="fxTid">${trilhas.map(t=>`<option value="${t.id}">${escapeHtml(t.nome)}</option>`).join("")}</select></div>`;
-  const selMod=modFixo?`<input type="hidden" id="fxMod" value="${modFixo}">`
-    :`<div class="field"><label for="fxMod">Módulo</label><select id="fxMod"></select></div>`;
   return `<div class="panel mt">
-    <h2>${ic("plus",14)} Adicionar conteúdo ${modFixo?"a este módulo":"à trilha"}</h2>
+    <h2>${ic("plus",14)} Adicionar conteúdo a uma trilha</h2>
     <div class="addform">
-      ${selTid}${selMod}
+      <div class="field"><label for="fxTid">Trilha</label><select id="fxTid">${trilhas.map(t=>`<option value="${t.id}">${escapeHtml(t.nome)}</option>`).join("")}</select></div>
+      <div class="field"><label for="fxMod">Módulo</label><select id="fxMod"></select></div>
       <div class="field"><label for="fxTipo">Tipo</label>
         <select id="fxTipo"><option value="video">Vídeo</option><option value="artigo">Artigo</option><option value="livro">Livro</option></select></div>
       <div class="field"><label for="fxNome">Título</label><input id="fxNome" type="text" placeholder="Ex.: Pandas em 1 hora" maxlength="120"></div>
@@ -541,11 +540,11 @@ function ligarFormExtra(afterAdd){
   if(!btn)return;
   const selTid=document.getElementById("fxTid"),selMod=document.getElementById("fxMod");
   function popularMods(){
-    if(selMod.tagName!=="SELECT")return;
     const t=getTrilha(selTid.value);
     selMod.innerHTML=(t?t.modulos:[]).map(m=>`<option value="${m.n}">${String(m.n).padStart(2,"0")} — ${escapeHtml(m.titulo)}</option>`).join("");
   }
-  if(selTid.tagName==="SELECT"){selTid.addEventListener("change",popularMods);popularMods();}
+  selTid.addEventListener("change",popularMods);
+  popularMods();
   btn.addEventListener("click",()=>{
     const tid=selTid.value,mod=Number(selMod.value);
     const t=document.getElementById("fxTipo").value;
@@ -568,8 +567,8 @@ function renderModulo(tid,n){
   const f=t.fases.find(x=>x.id===m.fase)||t.fases[0];
   const exs=exDoMod(t,n),xts=extrasDoMod(tid,n);
   crumb.textContent=`${t.nome} · Módulo ${String(n).padStart(2,"0")} — ${m.titulo}`;
-  const tipoIc={curso:"book",video:"video",cert:"award",pratica:"target",entrega:"box",livro:"book"};
-  const tipoLabel={curso:"curso",video:"vídeo",cert:"certificado",pratica:"prática",entrega:"entregável",livro:"livro"};
+  const tipoIc={curso:"book",video:"video",cert:"award",pratica:"target",entrega:"box",livro:"book",artigo:"panel"};
+  const tipoLabel={curso:"curso",video:"vídeo",cert:"certificado",pratica:"prática",entrega:"entregável",livro:"livro",artigo:"artigo"};
   const itens=m.itens||[];
   const noPortal=itens.filter(it=>it.embed||!it.u);
   const externos=itens.filter(it=>it.u&&!it.embed);
@@ -617,14 +616,13 @@ function renderModulo(tid,n){
       <h2 class="p-head" tabindex="0" role="button" aria-expanded="true">${ic("video",14)} Conteúdo no portal <span class="chev">${ic("chevD",14)}</span></h2>
       <div class="p-body">${noPortal.map(renderItem).join("")}</div>
     </div>`:""}
-    <div class="panel mt">
+    ${xts.length?`<div class="panel mt">
       <h2 class="p-head" tabindex="0" role="button" aria-expanded="true">${ic("star",14)} Conteúdo extra — adicionado por você <span class="chev">${ic("chevD",14)}</span></h2>
-      <div class="p-body">${xts.length?xts.map(x=>renderExtraItem(x,false)).join(""):`<p class="empty">Nenhum conteúdo extra aqui ainda. Adicione abaixo — vídeos do YouTube viram player dentro do portal.</p>`}</div>
-    </div>
-    ${formExtra(tid,n)}
+      <div class="p-body">${xts.map(x=>renderExtraItem(x,false)).join("")}</div>
+    </div>`:""}
     ${externos.length?`<div class="panel mt closed">
-      <h2 class="p-head" tabindex="0" role="button" aria-expanded="false">${ic("ext",14)} Aprofundamento — plataformas externas (opcional) <span class="chev">${ic("chevD",14)}</span></h2>
-      <div class="p-body"><p class="empty">Cursos e certificações em plataformas com login (Kaggle, freeCodeCamp etc.). Elas não permitem exibição dentro de outros sites, por segurança delas — abrem em nova aba ou no visualizador.</p>${externos.map(renderItem).join("")}</div>
+      <h2 class="p-head" tabindex="0" role="button" aria-expanded="false">${ic("ext",14)} Materiais de fontes confiáveis — abrem no visualizador ou em nova aba <span class="chev">${ic("chevD",14)}</span></h2>
+      <div class="p-body"><p class="empty">Cursos e certificações de plataformas parceiras do estudo (Microsoft Learn, Kaggle, freeCodeCamp…). Algumas bloqueiam a exibição dentro de outros sites por segurança — nesses casos, o botão de nova aba resolve.</p>${externos.map(renderItem).join("")}</div>
     </div>`:""}
     ${exs.length?`<h3 class="secT">${ic("flask",17)} Testes práticos — compilador interno (Python no navegador)</h3>`+
       exs.map(ex=>{
@@ -669,7 +667,6 @@ function renderModulo(tid,n){
       if(e.key==="Tab"){e.preventDefault();const s=ed.selectionStart;ed.setRangeText("    ",s,ed.selectionEnd,"end");}
     });
   });
-  ligarFormExtra(()=>renderModulo(tid,n));
 }
 
 /* ---------------- minha área ---------------- */
@@ -681,7 +678,7 @@ function renderArea(){
       <div>
         <div class="eyebrow">seu perfil de estudos · ${extras.length} conteúdo(s) adicionados</div>
         <h1>${ic("star",26)} Minha <em>área</em></h1>
-        <p class="sub">Acompanhe suas trilhas e personalize-as: adicione vídeos (players no portal), artigos e livros. Tudo conta no progresso.</p>
+        <p class="sub">Acompanhe suas trilhas e personalize-as: é aqui que você adiciona vídeos (players no portal), artigos e livros, escolhendo a trilha e o módulo de destino. Tudo conta no progresso.</p>
       </div>
     </div>
     <h3 class="secT">${ic("chart",17)} Andamento das minhas trilhas</h3>
@@ -696,38 +693,66 @@ function renderArea(){
         </div>
       </button>`;
     }).join("")}</div>
-    ${formExtra(null,null)}
+    ${formExtra()}
     <h3 class="secT">${ic("book",17)} Meus conteúdos adicionados</h3>
     ${extras.length?`<div class="panel">${extras.map(x=>renderExtraItem(x,true)).join("")}</div>`
-      :`<div class="panel"><p class="empty">Você ainda não adicionou nada. Use o formulário acima — o vídeo que você quer assistir vira parte oficial do módulo escolhido.</p></div>`}`;
+      :`<div class="panel"><p class="empty">Você ainda não adicionou nada. Use o formulário acima — o vídeo que você quer assistir vira parte oficial do módulo escolhido, com player dentro do portal.</p></div>`}`;
   content.querySelectorAll("[data-gotrilha]").forEach(b=>b.addEventListener("click",()=>irPara({tipo:"trilha",tid:b.getAttribute("data-gotrilha")})));
   ligarFormExtra(()=>renderArea());
 }
 
-/* ---------------- nova trilha ---------------- */
-const PALETAS=[["#1F77B4","#7A4DBE"],["#0E7C7B","#3B7DD8"],["#D95F02","#E7298A"],["#2CA02C","#0E7C7B"],["#9467BD","#D62728"],["#8C564B","#FF7F0E"]];
+/* ---------------- nova trilha (gerador) ---------------- */
+const PALETAS=[["#4F46E5","#7C3AED"],["#0E7C7B","#3B7DD8"],["#D95F02","#E7298A"],["#16A34A","#0E7C7B"],["#9467BD","#D62728"],["#8C564B","#FF7F0E"]];
+let gradePlano=null;
 function renderNova(){
-  crumb.textContent="Nova trilha";
+  crumb.textContent="Nova trilha — gerador Estude+";
   content.innerHTML=`
     <div class="hero solo">
       <div>
-        <div class="eyebrow">crie sua própria trilha de estudos</div>
-        <h1>${ic("plus",26)} Nova <em>trilha</em></h1>
-        <p class="sub">Defina o tema e os módulos; depois alimente cada módulo com vídeos, artigos e livros pela Minha área ou dentro do próprio módulo. O progresso é calculado automaticamente.</p>
+        <div class="eyebrow">gerador de trilhas Estude+</div>
+        <h1>${ic("zap",26)} Nova <em>trilha</em></h1>
+        <p class="sub">Digite o que você quer aprender. O Estude+ monta a grade de estudos — módulos, tópicos, guia de estudo e materiais de fontes confiáveis — e você aprova antes de criar.</p>
       </div>
     </div>
     <div class="panel mt">
-      <h2>${ic("plus",14)} Criar trilha</h2>
-      <div class="addform nf">
-        <div class="field"><label for="ntNome">Nome da trilha</label><input id="ntNome" type="text" placeholder="Ex.: Engenharia de Analytics" maxlength="60"></div>
-        <div class="field"><label for="ntDesc">Descrição (opcional)</label><input id="ntDesc" type="text" placeholder="Objetivo da trilha" maxlength="160"></div>
-        <div class="field"><label for="ntCor">Cor</label><select id="ntCor">${PALETAS.map((p,i)=>`<option value="${i}">Paleta ${i+1}</option>`).join("")}</select></div>
-        <button class="btn-add" id="ntAdd">${ic("plus",14)} Criar trilha</button>
+      <h2>${ic("zap",14)} Gerar trilha inteligente</h2>
+      <div class="addform ger">
+        <div class="field"><label for="gerTema">Qual tema você quer estudar?</label><input id="gerTema" type="text" placeholder="Ex.: Excel, Power BI, SQL, inglês, JavaScript, estatística, Git…" maxlength="60"></div>
+        <button class="btn-add" id="gerBtn">${ic("zap",14)} Gerar grade de estudos</button>
       </div>
-      <div class="form-msg" id="ntMsg"></div>
+      <div class="fontes-nota">🔎 Fontes consultadas pelo gerador: Microsoft Learn, Curso em Vídeo, Khan Academy, freeCodeCamp, MDN, documentações oficiais e canais de referência do YouTube. Temas com grade especial curada: ${GERADOR.temasCurados.join(" · ")}. Outros temas recebem uma grade inteligente com buscas profundas nessas fontes.</div>
+      <div class="form-msg" id="gerMsg"></div>
+    </div>
+    <div id="gerPreview"></div>
+    <div class="panel mt closed" id="pManual">
+      <h2 class="p-head" tabindex="0" role="button" aria-expanded="false">${ic("plus",14)} Prefere montar do zero? Criação manual <span class="chev">${ic("chevD",14)}</span></h2>
+      <div class="p-body">
+        <div class="addform nf">
+          <div class="field"><label for="ntNome">Nome da trilha</label><input id="ntNome" type="text" placeholder="Ex.: Oratória para reuniões" maxlength="60"></div>
+          <div class="field"><label for="ntDesc">Descrição (opcional)</label><input id="ntDesc" type="text" placeholder="Objetivo da trilha" maxlength="160"></div>
+          <div class="field"><label for="ntCor">Cor</label><select id="ntCor">${PALETAS.map((p,i)=>`<option value="${i}">Paleta ${i+1}</option>`).join("")}</select></div>
+          <button class="btn-add" id="ntAdd">${ic("plus",14)} Criar trilha vazia</button>
+        </div>
+        <div class="form-msg" id="ntMsg"></div>
+      </div>
     </div>
     <h3 class="secT">${ic("layers",17)} Minhas trilhas personalizadas</h3>
     <div id="listaCustoms"></div>`;
+  document.getElementById("gerBtn").addEventListener("click",()=>{
+    const tema=document.getElementById("gerTema").value.trim();
+    const msg=document.getElementById("gerMsg");
+    if(!tema){msg.className="form-msg err";msg.textContent="Digite um tema para gerar a grade.";return;}
+    msg.className="form-msg ok";
+    gradePlano=GERADOR.gerar(tema);
+    msg.textContent=gradePlano.curada?"Encontrei uma grade curada para esse tema! Revise abaixo e aprove.":"Grade gerada a partir das fontes confiáveis. Revise abaixo e aprove.";
+    renderPreviewGrade();
+    document.getElementById("gerPreview").scrollIntoView({behavior:"smooth",block:"start"});
+  });
+  document.getElementById("gerTema").addEventListener("keydown",e=>{if(e.key==="Enter")document.getElementById("gerBtn").click();});
+  const ph=document.querySelector("#pManual .p-head");
+  const tg=()=>{const p=ph.closest(".panel");p.classList.toggle("closed");ph.setAttribute("aria-expanded",!p.classList.contains("closed"));};
+  ph.addEventListener("click",tg);
+  ph.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();tg();}});
   document.getElementById("ntAdd").addEventListener("click",()=>{
     const nome=document.getElementById("ntNome").value.trim();
     const desc=document.getElementById("ntDesc").value.trim();
@@ -740,20 +765,55 @@ function renderNova(){
     document.getElementById("ntNome").value="";document.getElementById("ntDesc").value="";
     listarCustoms();
   });
+  gradePlano=null;
+  renderPreviewGrade();
   listarCustoms();
+}
+function renderPreviewGrade(){
+  const box=document.getElementById("gerPreview");
+  if(!box)return;
+  if(!gradePlano){box.innerHTML="";return;}
+  const g=gradePlano;
+  const totalH=g.modulos.reduce((s,m)=>s+m.h,0);
+  box.innerHTML=`<div class="panel mt" style="border:2px solid ${g.c1}">
+    <h2>${ic("layers",14)} Grade sugerida — ${escapeHtml(g.nome)} · ${totalH}h <span style="margin-left:auto;font-family:var(--mono);font-size:10px;color:${g.curada?"var(--ok)":"var(--ink-soft)"}">${g.curada?"✔ base curada":"grade gerada"}</span></h2>
+    <p style="font-size:13px;color:var(--ink-soft);margin-bottom:6px">${escapeHtml(g.desc)}</p>
+    ${g.modulos.map(m=>`<div class="grade-mod">
+      <span class="gn">${String(m.n).padStart(2,"0")}</span>
+      <div style="flex:1;min-width:0"><b>${escapeHtml(m.titulo)} · ${m.h}h</b>
+        <div class="gt">${escapeHtml(m.topicos)}</div>
+        <div class="gf">${ic("book",11)} guia de estudo incluso · ${m.itens.length} materiais de fontes confiáveis</div>
+      </div></div>`).join("")}
+    <div class="acts" style="margin-top:12px">
+      <button class="btn-add" id="gerAprovar">${ic("check",14)} Aprovar e criar trilha</button>
+      <button class="btn-ghost" id="gerDescartar">${ic("close",13)} Descartar</button>
+    </div></div>`;
+  document.getElementById("gerAprovar").addEventListener("click",()=>{
+    const base=Date.now().toString(36);
+    const id="c"+base;
+    const modulos=g.modulos.map((m,i)=>({
+      n:m.n,titulo:m.titulo,h:m.h,topicos:m.topicos,aula:m.aula,
+      itens:m.itens.map((it,j)=>Object.assign({id:"u"+base+"_"+i+"_"+j},it))
+    }));
+    customs.push({id,nome:g.nome,desc:g.desc,c1:g.c1,c2:g.c2,icon:"zap",modulos});
+    salvar();indexarExercicios();
+    gradePlano=null;
+    irPara({tipo:"trilha",tid:id});
+  });
+  document.getElementById("gerDescartar").addEventListener("click",()=>{gradePlano=null;renderPreviewGrade();});
 }
 function listarCustoms(){
   const box=document.getElementById("listaCustoms");
   if(!box)return;
-  if(!customs.length){box.innerHTML=`<div class="panel"><p class="empty">Nenhuma trilha personalizada ainda. Crie a primeira acima — por exemplo, "Engenharia de Analytics" ou "Inglês para dados".</p></div>`;return;}
+  if(!customs.length){box.innerHTML=`<div class="panel"><p class="empty">Nenhuma trilha personalizada ainda. Gere a primeira acima — experimente digitar "Excel".</p></div>`;return;}
   box.innerHTML=customs.map(c=>`
     <div class="panel mt" data-tri="${c.id}">
-      <h2>${ic("star",14)} ${escapeHtml(c.nome)} <span style="margin-left:auto;display:inline-flex;gap:8px">
+      <h2>${ic("star",14)} ${escapeHtml(c.nome)} <span style="margin-left:auto;display:inline-flex;gap:8px;flex-wrap:wrap">
         <button class="btn-ghost" data-abrir="${c.id}">${ic("ext",13)} Abrir trilha</button>
         <button class="btn-warn" data-deltri="${c.id}">${ic("trash",13)} Excluir trilha</button></span></h2>
       ${(c.modulos||[]).length?(c.modulos.map(m=>`
         <div class="item"><span class="tipo curso">${ic("book",11)} módulo</span>
-          <div class="txt"><div class="nome">${String(m.n).padStart(2,"0")} — ${escapeHtml(m.titulo)}</div><div class="desc">${m.h||0}h estimadas · ${extrasDoMod(c.id,m.n).length} conteúdo(s)</div></div>
+          <div class="txt"><div class="nome">${String(m.n).padStart(2,"0")} — ${escapeHtml(m.titulo)}</div><div class="desc">${m.h||0}h estimadas · ${(m.itens||[]).length} materiais · ${extrasDoMod(c.id,m.n).length} extra(s)</div></div>
           <button class="btn-warn" data-delmod="${c.id}:${m.n}" style="margin-top:2px">${ic("trash",13)}</button>
         </div>`).join("")):`<p class="empty">Sem módulos ainda.</p>`}
       <div class="addform nf" style="margin-top:12px">
@@ -848,7 +908,7 @@ function renderConfig(){
   document.getElementById("btnExport").addEventListener("click",()=>{
     const blob=new Blob([JSON.stringify({estado,extras,customs,config},null,2)],{type:"application/json"});
     const a=document.createElement("a");
-    a.href=URL.createObjectURL(blob);a.download="studyhub-backup.json";a.click();
+    a.href=URL.createObjectURL(blob);a.download="estudemais-backup.json";a.click();
     URL.revokeObjectURL(a.href);
   });
   document.getElementById("btnImport").addEventListener("click",()=>{
